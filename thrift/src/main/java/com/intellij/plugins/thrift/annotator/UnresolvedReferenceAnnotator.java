@@ -22,17 +22,13 @@ public class UnresolvedReferenceAnnotator implements Annotator {
     PsiReference[] references = customType.getReferences();
 
     if (references.length == 2) {
-      String importName = references[1].getRangeInElement().substring(element.getText());
+      String importName = references[0].getRangeInElement().substring(element.getText());
       String typeName = references[1].getRangeInElement().substring(element.getText());
       if (references[0].resolve() == null) {
         holder.newAnnotation(HighlightSeverity.ERROR, String.format("unresolved import: '%s'", importName))
                 .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
 //                .withFix(new ThriftCreateCustomTypeQuickFix(customType)) TODO: propose import
                 .range(references[0].getAbsoluteRange())
-                .create();
-        holder.newSilentAnnotation(HighlightSeverity.ERROR)
-                .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
-                .range(references[1].getAbsoluteRange())
                 .create();
       } else {
         if (references[1].resolve() == null) {
