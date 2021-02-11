@@ -36,6 +36,8 @@ NUMBER=[0-9]+(\.[0-9]*)?
 %%
 <YYINITIAL> {
   {WHITE_SPACE}        { return WHITE_SPACE; }
+  {COMMENT}            { return COMMENT; }
+  {BLOCK_COMMENT}      { return BLOCK_COMMENT; }
 
   "{"                  { return LEFT_CURLY_BRACE; }
   "}"                  { return RIGHT_CURLY_BRACE; }
@@ -91,13 +93,12 @@ NUMBER=[0-9]+(\.[0-9]*)?
   "xsd_attrs"          { return XSD_ATTRS; }
 
   {SPACE}              { return SPACE; }
-  {COMMENT}            { return COMMENT; }
-  {BLOCK_COMMENT}      { return BLOCK_COMMENT; }
   {LITERAL}            { return LITERAL; }
   {IDENTIFIER}         { return IDENTIFIER; }
   {INTEGER}            { return INTEGER; }
   {NUMBER}             { return NUMBER; }
 
 }
+
 
 [^] { return BAD_CHARACTER; }
