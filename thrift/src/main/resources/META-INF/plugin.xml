@@ -181,7 +181,8 @@
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.thrift.inspections.ThriftNameDuplicatesInspection"/>
     <annotator language="thrift" implementationClass="com.intellij.plugins.thrift.annotator.UnresolvedReferenceAnnotator"/>
-
+    <lang.formatter language="thrift"
+                    implementationClass="com.intellij.plugins.thrift.formatter.ThriftFormattingModelBuilder"/>
     <projectConfigurable instance="com.intellij.plugins.thrift.config.ThriftCompilerConfigurable" id="intellij-thrift"
                          displayName="Thrift Compiler" parentId="project.propCompiler"/>
 
