@@ -15,25 +15,25 @@ public class ThriftIconProvider extends IconProvider {
   @Nullable
   @Override
   public Icon getIcon(@NotNull PsiElement element, @Iconable.IconFlags int flags) {
-    if (element instanceof ThriftConst) {
+    if (element instanceof ThriftConstDeclaration) {
       return ThriftIcons.CONST;
     }
-    if (element instanceof ThriftEnum) {
+    if (element instanceof ThriftEnumDeclaration) {
       return ThriftIcons.ENUM;
     }
-    if (element instanceof ThriftException) {
+    if (element instanceof ThriftExceptionDeclaration) {
       return ThriftIcons.EXCEPTION;
     }
-    if (element instanceof ThriftService) {
+    if (element instanceof ThriftServiceDeclaration) {
       return ThriftIcons.SERVICE;
     }
-    if (element instanceof ThriftStruct) {
+    if (element instanceof ThriftStructDeclaration) {
       return ThriftIcons.STRUCT;
     }
-    if (element instanceof ThriftTypedef) {
+    if (element instanceof ThriftTypeDeclaration) {
       return ThriftIcons.TYPEDEF;
     }
-    if (element instanceof ThriftUnion) {
+    if (element instanceof ThriftUnionDeclaration) {
       return ThriftIcons.UNION;
     }
     if (element instanceof ThriftField) {

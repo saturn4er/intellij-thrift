@@ -44,7 +44,7 @@ public class ThriftCreateCustomTypeQuickFix extends BaseIntentionAction {
   }
 
   public void addType(@NotNull Project project, @NotNull PsiElement after, String name) {
-    boolean isException = PsiTreeUtil.getParentOfType(type, ThriftThrows.class) != null;
+    boolean isException = PsiTreeUtil.getParentOfType(type, ThriftFunctionThrows.class) != null;
 
     PsiElement newElement;
     if (isException) {

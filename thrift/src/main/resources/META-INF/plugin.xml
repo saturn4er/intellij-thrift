@@ -127,7 +127,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileTypeFactory implementation="com.intellij.plugins.thrift.ThriftFileTypeLoader"/>
     <lang.parserDefinition language="thrift" implementationClass="com.intellij.plugins.thrift.lang.parser.ThriftParserDefinition"/>
-    <completion.contributor language="any" implementationClass="com.intellij.plugins.thrift.completion.ThriftKeywordCompletionContributor"/>
     <itemPresentationProvider forClass="com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"
                               implementationClass="com.intellij.plugins.thrift.lang.psi.presentation.ThriftTopLevelDeclarationPresentationProvider"/>
     <itemPresentationProvider forClass="com.intellij.plugins.thrift.lang.psi.ThriftSubDeclaration"

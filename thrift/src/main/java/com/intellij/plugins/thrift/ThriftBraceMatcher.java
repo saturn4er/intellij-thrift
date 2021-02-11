@@ -14,9 +14,9 @@ import org.jetbrains.annotations.Nullable;
 public class ThriftBraceMatcher implements PairedBraceMatcher {
 
   private static final BracePair[] PAIRS = new BracePair[] {
-    new BracePair(ThriftTokenTypes.LEFTCURLYBRACE, ThriftTokenTypes.RIGHTCURLYBRACE, false),
-    new BracePair(ThriftTokenTypes.LEFTBRACE, ThriftTokenTypes.RIGHTBRACE, false),
-    new BracePair(ThriftTokenTypes.LEFTBRACKET, ThriftTokenTypes.RIGHTBRACKET, false),
+    new BracePair(ThriftTokenTypes.LEFT_CURLY_BRACE, ThriftTokenTypes.RIGHT_CURLY_BRACE, false),
+    new BracePair(ThriftTokenTypes.LEFT_BRACE, ThriftTokenTypes.RIGHT_BRACE, false),
+    new BracePair(ThriftTokenTypes.LEFT_BRACKET, ThriftTokenTypes.RIGHT_BRACKET, false),
     new BracePair(ThriftTokenTypes.LT, ThriftTokenTypes.GT, false)
   };
 

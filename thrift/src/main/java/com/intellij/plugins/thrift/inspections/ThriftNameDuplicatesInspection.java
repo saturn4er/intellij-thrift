@@ -49,14 +49,9 @@ public class ThriftNameDuplicatesInspection extends LocalInspectionTool {
     new ThriftVisitor() {
       @Override
       public void visitTopLevelDeclaration(@NotNull ThriftTopLevelDeclaration o) {
-        if (o instanceof ThriftEnum) {
-          ThriftEnumFields enumFields = ((ThriftEnum) o).getEnumFields();
-          if (enumFields == null) {
-            return;
-          }
-
+        if (o instanceof ThriftEnumDeclaration) {
           Set<String> names = new HashSet<String>();
-          for (ThriftEnumField enumField : enumFields.getEnumFieldList()) {
+          for (ThriftEnumField enumField : ((ThriftEnumDeclaration) o).getEnumFieldList()) {
             PsiElement nameIdentifier = enumField.getIdentifier();
 
             if (!names.add(nameIdentifier.getText())) {
@@ -69,25 +64,16 @@ public class ThriftNameDuplicatesInspection extends LocalInspectionTool {
               ));
             }
           }
-        } else if (o instanceof ThriftSenum){
-          checkSenum((ThriftSenum) o, result, manager, isOnTheFly);
-        } else if (o instanceof ThriftService) {
-          checkService((ThriftService) o, result, manager, isOnTheFly);
-        } else if (o instanceof ThriftStruct) {
-          ThriftFields fields = ((ThriftStruct) o).getFields();
-          if (fields != null) {
-            result.addAll(checkFieldList(manager, isOnTheFly, fields.getFieldList(), "fields"));
-          }
-        } else if (o instanceof ThriftUnion) {
-          ThriftFields fields = ((ThriftUnion) o).getFields();
-          if (fields != null) {
-            result.addAll(checkFieldList(manager, isOnTheFly, fields.getFieldList(), "union values"));
-          }
-        } else if (o instanceof ThriftException) {
-          ThriftFields fields = ((ThriftException) o).getFields();
-          if (fields != null) {
-            result.addAll(checkFieldList(manager, isOnTheFly, fields.getFieldList(), "fields"));
-          }
+        } else if (o instanceof ThriftSenumDeclaration) {
+          checkSenum((ThriftSenumDeclaration) o, result, manager, isOnTheFly);
+        } else if (o instanceof ThriftServiceDeclaration) {
+          checkService((ThriftServiceDeclaration) o, result, manager, isOnTheFly);
+        } else if (o instanceof ThriftStructDeclaration) {
+          result.addAll(checkFieldList(manager, isOnTheFly, ((ThriftStructDeclaration) o).getFieldList(), "fields"));
+        } else if (o instanceof ThriftUnionDeclaration) {
+          result.addAll(checkFieldList(manager, isOnTheFly, ((ThriftUnionDeclaration) o).getFieldList(), "union values"));
+        } else if (o instanceof ThriftExceptionDeclaration) {
+          result.addAll(checkFieldList(manager, isOnTheFly, ((ThriftExceptionDeclaration) o).getFieldList(), "fields"));
         }
       }
 
@@ -99,16 +85,11 @@ public class ThriftNameDuplicatesInspection extends LocalInspectionTool {
     return ArrayUtil.toObjectArray(result, ProblemDescriptor.class);
   }
 
-  private void checkSenum(ThriftSenum o, List<ProblemDescriptor> result, @NotNull InspectionManager manager, boolean isOnTheFly) {
-    ThriftSenumBody body = o.getSenumBody();
-    if(body == null){
-      return;
-    }
-
+  private void checkSenum(ThriftSenumDeclaration o, List<ProblemDescriptor> result, @NotNull InspectionManager manager, boolean isOnTheFly) {
     Set<String> names = new HashSet<String>();
 
-    for(ThriftSenumField field : body.getSenumFieldList()){
-      if (!names.add(field.getLiteral().getText())){
+    for (ThriftSenumField field : o.getSenumFieldList()) {
+      if (!names.add(field.getLiteral().getText())) {
         result.add(manager.createProblemDescriptor(
                 field.getLiteral(),
                 String.format("multiple senum values %s", field.getLiteral().getText()),
@@ -120,16 +101,10 @@ public class ThriftNameDuplicatesInspection extends LocalInspectionTool {
     }
   }
 
-  private void checkService(ThriftService o, List<ProblemDescriptor> result, @NotNull InspectionManager manager, boolean isOnTheFly) {
-    ThriftService service = o;
-    ThriftServiceBody body = service.getServiceBody();
-
-    if (body == null) {
-      return;
-    }
+  private void checkService(ThriftServiceDeclaration service, List<ProblemDescriptor> result, @NotNull InspectionManager manager, boolean isOnTheFly) {
     Set<String> methodNames = new HashSet<String>();
 
-    for (ThriftFunction f : body.getFunctionList()) {
+    for (ThriftFunction f : service.getFunctionList()) {
       String methodName = f.getDefinitionName().getName();
 
       if (!methodNames.add(methodName)) {
@@ -143,9 +118,9 @@ public class ThriftNameDuplicatesInspection extends LocalInspectionTool {
       }
 
       result.addAll(checkFieldList(manager, isOnTheFly, f.getFieldList(), "args"));
-      ThriftThrows t = f.getThrows();
-      if (t != null) {
-        result.addAll(checkFieldList(manager, isOnTheFly, t.getFieldList(), "throws"));
+      ThriftFunctionThrows functionThrows = f.getFunctionThrows();
+      if (functionThrows != null) {
+        result.addAll(checkFieldList(manager, isOnTheFly, functionThrows.getFieldList(), "throws"));
       }
     }
   }

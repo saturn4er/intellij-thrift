@@ -4,13 +4,11 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
-import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.thrift.highlight.ThriftSyntaxHighlighterColors;
 import com.intellij.plugins.thrift.lang.lexer.ThriftTokenTypes;
 import com.intellij.plugins.thrift.lang.psi.ThriftCustomType;
 import com.intellij.plugins.thrift.lang.psi.ThriftFunction;
-import com.intellij.plugins.thrift.util.ThriftUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -35,12 +33,9 @@ public class ThriftColorAnnotator implements Annotator {
     } else if (element instanceof ThriftFunction) {
       ThriftFunction function = (ThriftFunction) element;
       setRangeHighlighting(holder, ThriftSyntaxHighlighterColors.THRIFT_METHOD, function.getDefinitionName().getTextRange());
-    } else if (element instanceof LeafPsiElement) {
-      IElementType tokenType = ((LeafPsiElement) element).getElementType();
-      if (tokenType == ThriftTokenTypes.IDENTIFIER && ThriftUtils.getKeywords().contains(element.getText())) {
-        annotateKeyword(element, holder);
-      }
     }
+
+    // TODO: annotate
   }
 
   private static void setRangeHighlighting(@NotNull AnnotationHolder holder, @NotNull TextAttributesKey key, TextRange range) {
@@ -53,12 +48,6 @@ public class ThriftColorAnnotator implements Annotator {
   private static void setHighlighting(@NotNull AnnotationHolder holder, @NotNull TextAttributesKey key) {
     holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
             .textAttributes(key)
-            .create();
-  }
-
-  private void annotateKeyword(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
-            .textAttributes(TextAttributesKey.find(ThriftSyntaxHighlighterColors.THRIFT_KEYWORD))
             .create();
   }
 

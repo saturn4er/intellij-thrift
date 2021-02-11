@@ -6,7 +6,8 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.thrift.ThriftBundle;
-import com.intellij.plugins.thrift.lang.psi.ThriftInclude;
+import com.intellij.plugins.thrift.lang.psi.ThriftIncludeStatement;
+import com.intellij.plugins.thrift.lang.psi.ThriftIncludeStatement;
 import com.intellij.plugins.thrift.lang.psi.ThriftVisitor;
 import com.intellij.plugins.thrift.util.ThriftPsiUtil;
 import com.intellij.psi.PsiElement;
@@ -49,9 +50,8 @@ public class ThriftUnresolvedIncludeInspection extends LocalInspectionTool {
   public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull final InspectionManager manager, final boolean isOnTheFly) {
     final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
     new ThriftVisitor() {
-
       @Override
-      public void visitInclude(@NotNull ThriftInclude include) {
+      public void visitIncludeStatement(@NotNull ThriftIncludeStatement include) {
         if (ThriftPsiUtil.resolveInclude(include) == null) {
           PsiElement lastChild = include.getLastChild();
           result.add(manager.createProblemDescriptor(

@@ -13,7 +13,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.plugins.thrift.ThriftBundle;
 import com.intellij.plugins.thrift.index.ThriftDeclarationIndex;
 import com.intellij.plugins.thrift.lang.psi.ThriftDeclaration;
-import com.intellij.plugins.thrift.lang.psi.ThriftStruct;
+import com.intellij.plugins.thrift.lang.psi.ThriftStructDeclaration;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -37,8 +37,8 @@ public class GoToThriftDefinition extends AnAction {
       PsiElementListCellRenderer<PsiElement> renderer = new PsiElementListCellRenderer<PsiElement>() {
         @Override
         public String getElementText(PsiElement element) {
-          if (element instanceof ThriftStruct) {
-            return ((ThriftStruct) element).getName();
+          if (element instanceof ThriftStructDeclaration) {
+            return ((ThriftStructDeclaration) element).getName();
           } else {
             return element.getText().substring(0, 20);
           }

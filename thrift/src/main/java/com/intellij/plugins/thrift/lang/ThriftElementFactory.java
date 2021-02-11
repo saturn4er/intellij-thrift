@@ -3,9 +3,9 @@ package com.intellij.plugins.thrift.lang;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.thrift.ThriftLanguage;
 import com.intellij.plugins.thrift.lang.psi.ThriftCustomType;
-import com.intellij.plugins.thrift.lang.psi.ThriftException;
+import com.intellij.plugins.thrift.lang.psi.ThriftExceptionDeclaration;
 import com.intellij.plugins.thrift.lang.psi.ThriftFile;
-import com.intellij.plugins.thrift.lang.psi.ThriftStruct;
+import com.intellij.plugins.thrift.lang.psi.ThriftStructDeclaration;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.PsiParserFacadeImpl;
@@ -29,17 +29,17 @@ public class ThriftElementFactory {
   }
 
   @NotNull
-  public static ThriftStruct createStructFromText(@NotNull Project project, @NotNull String text) {
+  public static ThriftStructDeclaration createStructFromText(@NotNull Project project, @NotNull String text) {
     ThriftFile file = createFileFromText(project, text);
 
-    return PsiTreeUtil.findChildOfType(file, ThriftStruct.class);
+    return PsiTreeUtil.findChildOfType(file, ThriftStructDeclaration.class);
   }
 
   @NotNull
-  public static ThriftException createExceptionFromText(@NotNull Project project, @NotNull String text) {
+  public static ThriftExceptionDeclaration createExceptionFromText(@NotNull Project project, @NotNull String text) {
     ThriftFile file = createFileFromText(project, text);
 
-    return PsiTreeUtil.findChildOfType(file, ThriftException.class);
+    return PsiTreeUtil.findChildOfType(file, ThriftExceptionDeclaration.class);
   }
 
   @NotNull

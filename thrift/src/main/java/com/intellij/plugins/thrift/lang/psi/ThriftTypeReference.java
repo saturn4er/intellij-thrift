@@ -6,6 +6,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.thrift.lang.ThriftElementFactory;
+import com.intellij.plugins.thrift.lang.lexer.ThriftTokenTypeSets;
 import com.intellij.plugins.thrift.util.ThriftPsiUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -14,9 +15,8 @@ import com.intellij.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by fkorotkov.
@@ -37,35 +37,32 @@ public class ThriftTypeReference extends PsiReferenceBase<ThriftCustomType> {
     });
   }
 
-  @NotNull
   @Override
-  public Object[] getVariants() {
-    final Object[] result = processComponentAndFile(new Function<Pair<String, PsiFile>, Object[]>() {
-      @Override
-      public Object[] fun(Pair<String, PsiFile> pair) {
-        final List<Object> result = new ArrayList<Object>();
-        PsiFile psiFile = pair.getSecond();
-        ThriftPsiUtil.processDeclarations(psiFile, new Processor<ThriftDeclaration>() {
-          @Override
-          public boolean process(ThriftDeclaration declaration) {
-            result.add(declaration);
-            return true;
-          }
+  public Object @NotNull [] getVariants() {
+    final Object[] result = processComponentAndFile(pair -> {
+      final List<Object> result1 = new ArrayList<>();
+      PsiFile psiFile = pair.getSecond();
+      ThriftPsiUtil.processDeclarations(psiFile, declaration -> {
+        result1.add(declaration);
+        return true;
+      });
+
+      if (isSimple()) {
+
+        result1.addAll(Arrays.stream(ThriftTokenTypeSets.BASE_TYPES.getTypes()).map(t -> t.getDebugName()).collect(Collectors.toList()));
+
+        ThriftPsiUtil.processIncludes(getElement().getContainingFile(), include -> {
+          String path = include.getPath();
+          String fileName = PathUtil.getFileName(path);
+          result1.add(LookupElementBuilder.create(FileUtil.getNameWithoutExtension(fileName)));
+          return true;
         });
-        if (isSimple()) {
-          ThriftPsiUtil.processIncludes(getElement().getContainingFile(), new Processor<ThriftInclude>() {
-            @Override
-            public boolean process(ThriftInclude include) {
-              String path = include.getPath();
-              String fileName = PathUtil.getFileName(path);
-              result.add(LookupElementBuilder.create(FileUtil.getNameWithoutExtension(fileName)));
-              return true;
-            }
-          });
-        }
-        return ArrayUtil.toObjectArray(result);
       }
+
+
+      return ArrayUtil.toObjectArray(result1);
     });
+
     return result != null ? result : PsiElement.EMPTY_ARRAY;
   }
 
@@ -80,11 +77,10 @@ public class ThriftTypeReference extends PsiReferenceBase<ThriftCustomType> {
     if (index > 0) {
       String fileName = name.substring(0, index - 1);
       String componentName = name.substring(index);
-      ThriftInclude include = ThriftPsiUtil.findImportByPrefix(getElement().getContainingFile(), fileName);
+      ThriftIncludeStatement include = ThriftPsiUtil.findImportByPrefix(getElement().getContainingFile(), fileName);
       PsiFile includedFile = ThriftPsiUtil.resolveInclude(include);
       return includedFile != null ? fun.fun(Pair.create(componentName, includedFile)) : null;
-    }
-    else {
+    } else {
       return fun.fun(Pair.create(name, getElement().getContainingFile()));
     }
   }
@@ -100,7 +96,7 @@ public class ThriftTypeReference extends PsiReferenceBase<ThriftCustomType> {
     ThriftCustomType element = this.getElement();
     PsiElement identifier = element.getIdentifier();
     String currentText = identifier.getText();
-    String newText = TextRange.create(currentText.indexOf(".")+1, currentText.length()).replace(currentText, newElementName);
+    String newText = TextRange.create(currentText.indexOf(".") + 1, currentText.length()).replace(currentText, newElementName);
 
     element.getIdentifier().replace(ThriftElementFactory.createCustomTypeFromText(element.getProject(), newText));
     return element;

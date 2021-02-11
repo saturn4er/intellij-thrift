@@ -10,6 +10,7 @@ import com.intellij.plugins.thrift.lang.lexer.ThriftTokenTypes;
 import com.intellij.plugins.thrift.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +52,7 @@ public class ThriftFmtBlock implements ASTBlock {
                     c,
                     null,
                     computeIndent(c),
-                    null,
+                    wrap,
                     settings
             ))
             .collect(Collectors.toList());
@@ -75,28 +76,47 @@ public class ThriftFmtBlock implements ASTBlock {
   @Override
   public @Nullable Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
     return new SpacingBuilder(settings, ThriftLanguage.INSTANCE)
-            .around(ThriftTokenTypes.EQUALS).spaces(1)
-            .after(ThriftTokenTypes.FIELD_ID).spaces(1)
-            .after(ThriftTokenTypes.LIST_SEPARATOR).spaces(1)
-            .around(ThriftTokenTypes.NAMESPACE_SCOPE).spaces(1)
-            .around(ThriftTokenTypes.CUSTOM_TYPE).spaces(1)
-            .afterInside(ThriftTokenTypes.DEFINITION_NAME, ThriftTokenTypes.FUNCTION).none()
-            .afterInside(ThriftTokenTypes.DEFINITION_NAME, ThriftTokenTypes.FIELD).none()
-            .afterInside(ThriftTokenTypes.IDENTIFIER, ThriftTokenTypes.INCLUDE).spaces(1)
-            .around(ThriftTokenTypes.FIELD_TYPE).spaces(1)
-            .withinPairInside(ThriftTokenTypes.FIELD_ID,ThriftTokenTypes.DEFINITION_NAME, ThriftTokenTypes.FIELD).spaces(1)
-            .aroundInside(ThriftTokenTypes.DEFINITION_NAME, ThriftTokenTypes.STRUCT).spaces(1)
-            .aroundInside(ThriftTokenTypes.DEFINITION_NAME, ThriftTokenTypes.EXCEPTION).spaces(1)
-            .aroundInside(ThriftTokenTypes.DEFINITION_NAME, ThriftTokenTypes.SENUM).spaces(1)
-            .aroundInside(ThriftTokenTypes.DEFINITION_NAME, ThriftTokenTypes.SERVICE).spaces(1)
-            .betweenInside(ThriftTokenTypes.IDENTIFIER, null, ThriftTokenTypes.CONST).spaces(1)
-            .beforeInside(ThriftTokenTypes.COLON, ThriftTokenTypes.FIELD_ID).none()
+            // declarations
+            .after(ThriftTokenTypeSets.DECLARATIONS).blankLines(1)
+            .after(ThriftTokenTypes.NAMESPACE).spaces(1)
+            .after(ThriftTokenTypes.NAMESPACE_SCOPE).spaces(1)
+            .after(ThriftTokenTypes.TYPEDEF).spaces(1)
+            .aroundInside(ThriftTokenTypes.DEFINITION_NAME, ThriftTokenTypeSets.DECLARATIONS).spaces(1)
 
-            .after(ThriftTokenTypes.STRUCT).blankLines(1)
-            .after(ThriftTokenTypes.EXCEPTION).blankLines(1)
-            .after(ThriftTokenTypes.SENUM).blankLines(1)
-            .after(ThriftTokenTypes.ENUM).blankLines(1)
-            .after(ThriftTokenTypes.SERVICE).blankLines(1)
+            // field
+//            .after(ThriftTokenTypes.FIELD_ID).spaces(1)
+            .beforeInside(ThriftTokenTypes.COLON, ThriftTokenTypes.FIELD_ID).none()
+            .after(ThriftTokenTypes.FIELD_ID).spaces(1)
+            .beforeInside(ThriftTokenTypes.DEFINITION_NAME, ThriftTokenTypes.FIELD).spaces(1)
+            .beforeInside(ThriftTokenTypes.LIST_SEPARATOR, ThriftTokenTypes.FIELD).none()
+            .betweenInside(ThriftTokenTypes.DEFINITION_NAME, ThriftTokenTypes.LIST_SEPARATOR, ThriftTokenTypes.FIELD).none()
+
+            // function
+            .between(ThriftTokenTypes.FUNCTION_TYPE, ThriftTokenTypes.DEFINITION_NAME).spaces(1)
+            .between(ThriftTokenTypes.ONEWAY, ThriftTokenTypes.FUNCTION_TYPE).spaces(1)
+
+            // throws
+            .between(ThriftTokenTypes.THROWS, ThriftTokenTypes.LEFT_BRACE).spaces(1)
+
+            // type
+            .aroundInside(ThriftTokenTypes.TYPE, ThriftTokenTypes.FIELD).spaces(1)
+            .aroundInside(ThriftTokenTypes.TYPE, ThriftTokenTypes.CONST).spaces(1)
+            // map
+            .afterInside(ThriftTokenTypes.LT, ThriftTokenTypeSets.CONTAINER_TYPE).none()
+            .beforeInside(ThriftTokenTypes.GT, ThriftTokenTypeSets.CONTAINER_TYPE).none()
+
+            // const values
+            .betweenInside(ThriftTokenTypes.CONST_VALUE, ThriftTokenTypes.LIST_SEPARATOR, ThriftTokenTypes.CONST_LIST).none()
+            .betweenInside(ThriftTokenTypes.CONST_VALUE, ThriftTokenTypes.LIST_SEPARATOR, ThriftTokenTypes.CONST_MAP).none()
+            .betweenInside(ThriftTokenTypes.LIST_SEPARATOR, ThriftTokenTypes.CONST_VALUE, ThriftTokenTypes.CONST_MAP).spaces(1)
+
+            .around(ThriftTokenTypes.EQUALS).spaces(1)
+            .before(ThriftTokenTypes.SEMICOLON).none()
+            .after(ThriftTokenTypes.COMMA).spaces(1)
+            .before(ThriftTokenTypes.COMMA).none()
+            .after(ThriftTokenTypes.COLON).spaces(1)
+            .before(ThriftTokenTypes.COLON).none()
+
             .getSpacing(this, child1, child2);
   }
 
@@ -116,14 +136,12 @@ public class ThriftFmtBlock implements ASTBlock {
   }
 
   private Indent computeIndent(ASTNode childNode) {
-    PsiElement nodePsi = node.getPsi();
     PsiElement childNodePsi = childNode.getPsi();
-    if (childNodePsi instanceof ThriftFields ||
-            childNodePsi instanceof ThriftFunction ||
-            childNodePsi instanceof ThriftSenumBody ||
-            childNodePsi instanceof ThriftEnumField ||
-            childNodePsi instanceof ThriftThrows ||
-            (nodePsi instanceof ThriftThrows && childNodePsi instanceof ThriftField)
+    if (childNodePsi instanceof ThriftField
+            || childNodePsi instanceof ThriftFunction
+            || childNodePsi instanceof ThriftSenumField
+            || childNodePsi instanceof ThriftEnumField
+            || childNodePsi instanceof ThriftFunctionThrows
     ) {
       return Indent.getNormalIndent();
     }

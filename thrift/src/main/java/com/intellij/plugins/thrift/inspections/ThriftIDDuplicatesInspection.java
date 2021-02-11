@@ -51,13 +51,8 @@ public class ThriftIDDuplicatesInspection extends LocalInspectionTool {
       public void visitTopLevelDeclaration(@NotNull ThriftTopLevelDeclaration o) {
         Set<String> ids = new HashSet<String>();
 
-        if (o instanceof ThriftEnum) {
-          ThriftEnumFields enumFields = ((ThriftEnum) o).getEnumFields();
-          if (enumFields == null) {
-            return;
-          }
-
-          for (ThriftEnumField enumField : enumFields.getEnumFieldList()) {
+        if (o instanceof ThriftEnumDeclaration) {
+          for (ThriftEnumField enumField : ((ThriftEnumDeclaration) o).getEnumFieldList()) {
             ThriftIntConstant id = enumField.getIntConstant();
             if (id != null && !ids.add(id.getText())) {
               result.add(manager.createProblemDescriptor(
@@ -70,37 +65,22 @@ public class ThriftIDDuplicatesInspection extends LocalInspectionTool {
             }
           }
 
-        } else if (o instanceof ThriftService) {
-          ThriftService service = (ThriftService) o;
-          ThriftServiceBody body = service.getServiceBody();
-
-          if (body == null) {
-            return;
-          }
-
-          for (ThriftFunction f : body.getFunctionList()) {
+        } else if (o instanceof ThriftServiceDeclaration) {
+          for (ThriftFunction f : ((ThriftServiceDeclaration) o).getFunctionList()) {
             result.addAll(checkFieldList(manager, isOnTheFly, f.getFieldList(), "args"));
-            ThriftThrows t = f.getThrows();
+
+            ThriftFunctionThrows t = f.getFunctionThrows();
             if (t != null) {
               result.addAll(checkFieldList(manager, isOnTheFly, t.getFieldList(), "throws"));
             }
           }
 
-        } else if (o instanceof ThriftStruct) {
-          ThriftFields fields = ((ThriftStruct) o).getFields();
-          if (fields != null) {
-            result.addAll(checkFieldList(manager, isOnTheFly, fields.getFieldList(), "fields"));
-          }
-        } else if (o instanceof ThriftUnion) {
-          ThriftFields fields = ((ThriftUnion) o).getFields();
-          if (fields != null) {
-            result.addAll(checkFieldList(manager, isOnTheFly, fields.getFieldList(), "union values"));
-          }
-        } else if (o instanceof ThriftException) {
-          ThriftFields fields = ((ThriftException) o).getFields();
-          if (fields != null) {
-            result.addAll(checkFieldList(manager, isOnTheFly, fields.getFieldList(), "fields"));
-          }
+        } else if (o instanceof ThriftStructDeclaration) {
+          result.addAll(checkFieldList(manager, isOnTheFly, ((ThriftStructDeclaration) o).getFieldList(), "fields"));
+        } else if (o instanceof ThriftUnionDeclaration) {
+          result.addAll(checkFieldList(manager, isOnTheFly, ((ThriftUnionDeclaration) o).getFieldList(), "union values"));
+        } else if (o instanceof ThriftExceptionDeclaration) {
+          result.addAll(checkFieldList(manager, isOnTheFly, ((ThriftExceptionDeclaration) o).getFieldList(), "fields"));
         }
       }
 
@@ -122,7 +102,7 @@ public class ThriftIDDuplicatesInspection extends LocalInspectionTool {
     final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
 
     for (ThriftField field : fields) {
-      ThriftFieldID id = field.getFieldID();
+      ThriftFieldId id = field.getFieldId();
 
       if (id != null && !ids.add(id.getText())) {
         result.add(manager.createProblemDescriptor(

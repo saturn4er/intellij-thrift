@@ -41,7 +41,7 @@ public class ThriftCommenter implements CodeDocumentationAwareCommenter {
 
   @Override
   public IElementType getBlockCommentTokenType() {
-    return ThriftTokenTypes.BLOCKCOMMENT;
+    return ThriftTokenTypes.BLOCK_COMMENT;
   }
 
   @Override

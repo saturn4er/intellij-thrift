@@ -3,11 +3,16 @@ package com.intellij.plugins.thrift.highlight;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
+import com.intellij.plugins.thrift.lang.ThriftElementFactory;
+import com.intellij.plugins.thrift.lang.lexer.ThriftElementType;
 import com.intellij.plugins.thrift.lang.lexer.ThriftLexer;
+import com.intellij.plugins.thrift.lang.lexer.ThriftTokenTypeSets;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.intellij.plugins.thrift.lang.lexer.ThriftTokenTypeSets.BAD_TOKENS;
@@ -28,23 +33,24 @@ public class ThriftSyntaxHighlighter extends SyntaxHighlighterBase {
 
     ATTRIBUTES.put(LITERAL, ThriftSyntaxHighlighterColors.STRING);
 
-    ATTRIBUTES.put(LEFTBRACE, ThriftSyntaxHighlighterColors.PARENTHS);
-    ATTRIBUTES.put(RIGHTBRACE, ThriftSyntaxHighlighterColors.PARENTHS);
+    ATTRIBUTES.put(LEFT_BRACE, ThriftSyntaxHighlighterColors.PARENTHS);
+    ATTRIBUTES.put(RIGHT_BRACE, ThriftSyntaxHighlighterColors.PARENTHS);
 
-    ATTRIBUTES.put(LEFTCURLYBRACE, ThriftSyntaxHighlighterColors.BRACES);
-    ATTRIBUTES.put(RIGHTCURLYBRACE, ThriftSyntaxHighlighterColors.BRACES);
+    ATTRIBUTES.put(LEFT_CURLY_BRACE, ThriftSyntaxHighlighterColors.BRACES);
+    ATTRIBUTES.put(RIGHT_CURLY_BRACE, ThriftSyntaxHighlighterColors.BRACES);
 
-    ATTRIBUTES.put(LEFTBRACKET, ThriftSyntaxHighlighterColors.BRACKETS);
-    ATTRIBUTES.put(RIGHTBRACKET, ThriftSyntaxHighlighterColors.BRACKETS);
+    ATTRIBUTES.put(LEFT_BRACKET, ThriftSyntaxHighlighterColors.BRACKETS);
+    ATTRIBUTES.put(RIGHT_BRACKET, ThriftSyntaxHighlighterColors.BRACKETS);
 
     ATTRIBUTES.put(COMMA, ThriftSyntaxHighlighterColors.COMMA);
     ATTRIBUTES.put(SEMICOLON, ThriftSyntaxHighlighterColors.SEMICOLON);
 
-    ATTRIBUTES.put(BLOCKCOMMENT, ThriftSyntaxHighlighterColors.BLOCK_COMMENT);
+    ATTRIBUTES.put(BLOCK_COMMENT, ThriftSyntaxHighlighterColors.BLOCK_COMMENT);
     ATTRIBUTES.put(COMMENT, ThriftSyntaxHighlighterColors.LINE_COMMENT);
 
     fillMap(ATTRIBUTES, BAD_TOKENS, ThriftSyntaxHighlighterColors.BAD_CHARACTER);
   }
+
 
   @NotNull
   public Lexer getHighlightingLexer() {
@@ -53,6 +59,10 @@ public class ThriftSyntaxHighlighter extends SyntaxHighlighterBase {
 
   @NotNull
   public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
+    if(ThriftTokenTypeSets.KEYWORDS.contains(tokenType)){
+        return pack(ThriftSyntaxHighlighterColors.KEYWORD);
+    }
+    
     return pack(ATTRIBUTES.get(tokenType));
   }
 }

@@ -16,153 +16,230 @@
     tokenTypeClass="com.intellij.plugins.thrift.lang.lexer.ThriftElementType"
 
     tokens=[
-        Comment='regexp:#[^\r\n]*'
-        BlockComment='regexp:\/\* .* \*\/'
-        Literal="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
-        Identifier='regexp:([:letter:] | \_)(\w | \\.)*'
-        STIdentifier='regexp:([:letter:] | \_)(\w | \. | -)*'
-        Number='regexp:\d+(\.\d*)?'
-        Integer='regexp:\d+'
-        Multiply='regexp:\*'
+        space               = 'regexp:\s+'
+        COMMENT             = 'regexp:#[^\r\n]*'
+        BLOCK_COMMENT       = 'regexp:/\* .* \*/'
 
-        LeftCurlyBrace='{'
-        RightCurlyBrace='}'
-        LeftBracket='['
-        RightBracket=']'
-        LeftBrace='('
-        RightBrace=')'
-        Equals='='
-        SemiColon=';'
-        Colon=':'
-        LT='<'
-        GT='>'
-        Comma=','
-        Plus='+'
-        Minus='-'
-    ]
+        LEFT_CURLY_BRACE    = '{'
+        RIGHT_CURLY_BRACE   = '}'
+        LEFT_BRACKET        = '['
+        RIGHT_BRACKET       = ']'
+        LEFT_BRACE          = '('
+        RIGHT_BRACE         = ')'
+        EQUALS              = '='
+        SemiColon           = ';'
+        Colon               = ':'
+        LT                  = '<'
+        GT                  = '>'
+        Comma               = ','
+        Plus                = '+'
+        Minus               = '-'
+        MULTIPLY            = '*'
+// types
+        MAP                 = 'map'
+        SET                 = 'set'
+        LIST                = 'list'
+        CPP_TYPE            = 'cpp_type'
+        BOOL                = 'bool'
+        BYTE                = 'byte'
+        I8                  = 'i8'
+        I16                 = 'i16'
+        I32                 = 'i32'
+        I64                 = 'i64'
+        DOUBLE              = 'double'
+        STRING              = 'string'
+        BINARY              = 'binary'
+        SLIST               = 'slist'
+
+// header
+        INCLUDE             = 'include'
+        CPP_INCLUDE         = 'cpp_include'
+
+        NAMESPACE           = 'namespace'
+        XSD_NAMESPACE       = 'xsd_namespace'
+        PHP_NAMESPACE       = 'php_namespace'
+
+// definitions
+        ENUM                = 'enum'
+        SENUM               = 'senum'
+        SERVICE             = 'service'
+        EXTENDS             = 'extends'
+        EXCEPTION           = 'exception'
+        STRUCT              = 'struct'
+        TYPEDEF             = 'typedef'
+        UNION               = 'union'
+        CONST               = 'const'
+        XSD_ALL             = 'xsd_all'
+
+// method
+        VOID                = 'void'
+        THROWS              = 'throws'
+        ONEWAY              = 'oneway'
+
+// field
+        REQUIRED            = 'required'
+        OPTIONAL            = 'optional'
+        XSD_OPTIONAL        = 'xsd_optional'
+        XSD_NILLABLE        = 'xsd_nillable'
+        XSD_ATTRS           = 'xsd_attrs'
+
+// regexps
+        LITERAL             = "regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
+        IDENTIFIER          = 'regexp:[\p{Alpha}_][\p{Alnum}._-]*'
+        INTEGER             = 'regexp:\d+'
+        NUMBER              = 'regexp:\d+(\.\d*)?'
+    ];
+
+    pin(".*_declaration") = 1
+    mixin(".*_declaration") = "com.intellij.plugins.thrift.lang.psi.impl.ThriftTopLevelDeclarationImpl"
+    implements(".*_declaration") = "com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"
 }
 
-Document ::=  topLevelElement*
-private topLevelElement ::=  Include | Namespace |
-                             Const | Typedef | Enum | Senum | Struct | Union | Exception | Service
-                             {recoverWhile=topLevelRecover}
+document ::=  top_level_element*
+private top_level_element ::=  statement | declaration {recoverWhile=top_level_recover}
 
-private topLevelRecover ::= !('const' | 'cpp_include' | 'enum' | 'exception' | 'include' | 'namespace' |
+private top_level_recover ::= !('const' | 'cpp_include' | 'enum' | 'exception' | 'include' | 'namespace' |
                               'php_namespace' | 'senum' | 'service' | 'struct' | 'typedef' | 'union' |
                               'xsd_namespace' )
-Include ::=  ('include' | 'cpp_include') Literal {
+
+
+private statement ::= include_statement
+    | namespace_statement
+
+include_statement ::=  ('include' | 'cpp_include') LITERAL {
   pin=1
   methods=[
     getReferences
     getPath
   ]
 }
-Namespace ::=  std_namespace | php_namespace | xsd_namespace
-private xsd_namespace ::= 'xsd_namespace' Literal {pin=1}
-private php_namespace ::= 'php_namespace' Literal {pin=1}
-private std_namespace ::= 'namespace' (
-    ( NamespaceScope Identifier ) |
-    ( 'smalltalk.category' STIdentifier ) |
-    ( 'smalltalk.prefix' Identifier )
-) {pin=1}
 
-NamespaceScope  ::=  Multiply | 'cpp' | 'java' | 'py' | 'py.twisted' | 'perl' | 'rb' | 'js' | 'st' |
-                     'cocoa' | 'csharp' | 'c_glib' | 'go' | 'php' |  'd' | 'delphi' | 'xsd' | 'lua' |
-                     'netcore' | 'rs' | 'as3' | 'cl' | 'dart' | 'erl' | 'haxe' | 'hs'  |
-                     'javame' | 'json'  | 'netstd' | 'nodejs' | 'nodets' | 'ocaml'  | 'swift' | 'ts' | 'xml'
+namespace_statement ::=  std_namespace | php_namespace | xsd_namespace
+private xsd_namespace ::= 'xsd_namespace' LITERAL {pin=1}
+private php_namespace ::= 'php_namespace' LITERAL {pin=1}
+private std_namespace ::= 'namespace' (namespace_scope (IDENTIFIER | LITERAL)) {pin=1}
 
-DefinitionName ::= Identifier
-{implements="com.intellij.psi.PsiNamedElement, com.intellij.navigation.NavigationItem, com.intellij.psi.PsiNameIdentifierOwner" methods=[
-  setName
-  getName
-  getNameIdentifier
-]}
+namespace_scope  ::=  MULTIPLY | IDENTIFIER
 
-Const           ::=  'const' FieldType DefinitionName '=' ConstValue ListSeparator?
-{pin=1 mixin="com.intellij.plugins.thrift.lang.psi.impl.ThriftTopLevelDeclarationImpl" implements="com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"}
-Typedef         ::=  'typedef' FieldType DefinitionName TypeAnnotations?
-{pin=1 mixin="com.intellij.plugins.thrift.lang.psi.impl.ThriftTopLevelDeclarationImpl" implements="com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"}
-Enum            ::=  'enum' DefinitionName '{' enumFields '}' TypeAnnotations?
-{pin=1 mixin="com.intellij.plugins.thrift.lang.psi.impl.ThriftTopLevelDeclarationImpl" implements="com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"}
-enumFields ::= enumField*
-{implements="com.intellij.plugins.thrift.lang.psi.ThriftDeclarationBody"}
-enumField ::= Identifier ('=' IntConstant)? TypeAnnotations? ListSeparator? {recoverWhile=enumFieldRecovery}
-private enumFieldRecovery ::= !('}' | Identifier)
-
-Senum           ::=  'senum' DefinitionName '{' senumBody '}' TypeAnnotations?
-{pin=1 mixin="com.intellij.plugins.thrift.lang.psi.impl.ThriftTopLevelDeclarationImpl" implements="com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"}
-senumBody ::= senumField*
-{implements="com.intellij.plugins.thrift.lang.psi.ThriftDeclarationBody"}
-senumField ::= Literal ListSeparator? {recoverWhile=senumFieldRecovery}
-private senumFieldRecovery ::= !('}' | Literal)
-
-Struct          ::=  'struct' DefinitionName 'xsd_all'? '{' fields '}' TypeAnnotations?
-{pin=1 mixin="com.intellij.plugins.thrift.lang.psi.impl.ThriftTopLevelDeclarationImpl" implements="com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"}
-fields ::= Field*
-{recoverWhile=curlyBraceRecovery implements="com.intellij.plugins.thrift.lang.psi.ThriftDeclarationBody"}
-private curlyBraceRecovery ::= !('}')
-Union           ::=  'union' DefinitionName 'xsd_all'? '{' fields '}' TypeAnnotations?
-{pin=1 mixin="com.intellij.plugins.thrift.lang.psi.impl.ThriftTopLevelDeclarationImpl" implements="com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"}
-Exception       ::=  'exception' DefinitionName '{' fields '}' TypeAnnotations?
-{pin=1 mixin="com.intellij.plugins.thrift.lang.psi.impl.ThriftTopLevelDeclarationImpl" implements="com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"}
-Service         ::=  'service' DefinitionName ( 'extends' ServiceSuperName )? '{' serviceBody '}' TypeAnnotations?
-{pin=1 mixin="com.intellij.plugins.thrift.lang.psi.impl.ThriftTopLevelDeclarationImpl" implements="com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"}
-ServiceSuperName ::= CustomType
-serviceBody ::= (Function ListSeparator?)*
-{recoverWhile=functionsRecovery implements="com.intellij.plugins.thrift.lang.psi.ThriftDeclarationBody"}
-private functionsRecovery ::= !('}')
-
-Field           ::=  FieldID? FieldReq? FieldType DefinitionName ('=' ConstValue)? XsdFieldOptions TypeAnnotations? ListSeparator?
+definition_name ::= IDENTIFIER
 {
-  pin=3 recoverWhile=fieldRecovery
-  mixin="com.intellij.plugins.thrift.lang.psi.impl.AbstractThriftDeclaration" implements="com.intellij.plugins.thrift.lang.psi.ThriftSubDeclaration"
+    implements=[
+        "com.intellij.psi.PsiNamedElement"
+        "com.intellij.navigation.NavigationItem"
+        "com.intellij.psi.PsiNameIdentifierOwner"
+    ]
+    methods=[
+      setName
+      getName
+      getNameIdentifier
+    ]
 }
-FieldID         ::=  IntConstant ':'
-FieldReq        ::=  'required' | 'optional'
-private fieldRecovery ::= !(')' | '+' | '-' | 'binary' | 'bool' | 'byte' | 'double' | 'i8' | 'i16' | 'i32' | 'i64' | 'list' |
-                            'map' | 'optional' | 'required' | 'set' | 'slist' | 'string' | '}'| Integer | Identifier | Number )
 
-XsdFieldOptions ::=  'xsd_optional'? 'xsd_nillable'? XsdAttrs?
-XsdAttrs        ::=  'xsd_attrs' '{' fields '}' {pin=1}
+private declaration ::=  const_declaration
+    | type_declaration
+    | enum_declaration
+    | senum_declaration
+    | struct_declaration
+    | union_declaration
+    | exception_declaration
+    | service_declaration
 
-Function        ::=  'oneway'? FunctionType DefinitionName '(' fieldsWithBraceRecovery ')' Throws? TypeAnnotations?
+const_declaration   ::=  'const' type definition_name '=' const_value list_separator?
+type_declaration    ::=  'typedef' type definition_name type_annotations?
+
+enum_declaration    ::=  'enum' definition_name '{' enum_body? '}' type_annotations?
+private enum_body   ::= enum_field (list_separator? enum_field)*
+enum_field ::= IDENTIFIER ('=' int_constant)? type_annotations? {recoverWhile=enum_field_recovery}
+private enum_field_recovery ::= !('}' | IDENTIFIER)
+
+senum_declaration           ::=  'senum' definition_name '{' senum_body? '}' type_annotations?
+private senum_body ::= senum_field (list_separator? senum_field)*  {
+    pin=1
+    recoverWhile=senum_field_recovery
+    mixin="com.intellij.plugins.thrift.lang.psi.impl.SenumBodyImpl"
+}
+senum_field ::= LITERAL
+
+private senum_field_recovery ::= !('}' | LITERAL)
+
+struct_declaration          ::=  'struct' definition_name 'xsd_all'? '{' fields_body '}' type_annotations?
+union_declaration           ::=  'union' definition_name 'xsd_all'? '{' fields_body '}' type_annotations?
+exception_declaration       ::=  'exception' definition_name '{' fields_body '}' type_annotations?
+private fields_body         ::= fields_with_curly_brace_recovery
+service_declaration         ::=  'service' definition_name ( 'extends' service_super_name )? '{' service_body '}' type_annotations?
+
+service_super_name ::= custom_type
+private service_body ::= (function list_separator?)*
 {
-  pin=3 recoverWhile=functionRecovery
-  mixin="com.intellij.plugins.thrift.lang.psi.impl.AbstractThriftDeclaration" implements="com.intellij.plugins.thrift.lang.psi.ThriftSubDeclaration"
+    recoverWhile=curly_brace_recovery
+    implements="com.intellij.plugins.thrift.lang.psi.ThriftDeclarationBody"}
+
+private fields ::= field*
+private fields_with_brace_recovery ::= fields {recoverWhile=brace_recovery}
+private fields_with_curly_brace_recovery ::= fields {recoverWhile=curly_brace_recovery}
+field           ::=  field_id? field_req? type definition_name ('=' const_value)? field_xsd_options? type_annotations? list_separator?
+{
+  pin=3 recoverWhile=field_recovery
+  mixin="com.intellij.plugins.thrift.lang.psi.impl.AbstractThriftDeclaration"
+  implements="com.intellij.plugins.thrift.lang.psi.ThriftSubDeclaration"
+  methods=[getType]
 }
-private functionRecovery ::= !('binary' | 'bool' | 'byte' | 'double' |'i8' | 'i16' | 'i32' | 'i64' | 'list' | 'map' |
-                               'oneway' | 'set' | 'slist' | 'string' | 'void' | '}' | Identifier | ListSeparator)
-FunctionType    ::=  'void' | FieldType
-private fieldsWithBraceRecovery ::= Field* {recoverWhile=braceRecovery}
-Throws          ::=  'throws' '(' fieldsWithBraceRecovery ')' {pin=1}
+field_id         ::=  int_constant ':'
+field_req        ::=  'required' | 'optional'
+private field_recovery ::= !(')' | '+' | '-' | 'binary' | 'bool' | 'byte' | 'double' | 'i8' | 'i16' | 'i32' | 'i64' | 'list' |
+                            'map' | 'optional' | 'required' | 'set' | 'slist' | 'string' | '}'| INTEGER | IDENTIFIER | NUMBER )
 
-FieldType       ::=  BaseType | ContainerType | CustomType
-BaseType        ::=  SimpleBaseType TypeAnnotations?
-SimpleBaseType  ::=  'bool' | 'byte' | 'i8' | 'i16' | 'i32' | 'i64' | 'double' | 'string' | 'binary' | 'slist'
-ContainerType   ::=  SimpleContainerType TypeAnnotations?
-private SimpleContainerType   ::=  MapType | SetType | ListType
-MapType         ::=  'map' CppType? GenericType {pin=1}
-SetType         ::=  'set' CppType? GenericType {pin=1}
-ListType        ::=  'list' GenericType CppType? {pin=1}
-CppType         ::=  'cpp_type' Literal {pin=1}
-GenericType     ::= '<' FieldType (',' FieldType)* '>' {pin=1}
+private field_xsd_options ::=  'xsd_optional'? 'xsd_nillable'? field_xdf_attrs?
+field_xdf_attrs        ::=  'xsd_attrs' '{' fields '}' {pin=1}
 
-CustomType ::= Identifier {
-  methods=[
-    getReferences
+function        ::=  'oneway'? function_type definition_name '(' fields_with_brace_recovery ')' function_throws? type_annotations?
+{
+  pin=3 recoverWhile=function_recovery
+  mixin="com.intellij.plugins.thrift.lang.psi.impl.AbstractThriftDeclaration"
+  implements="com.intellij.plugins.thrift.lang.psi.ThriftSubDeclaration"
+}
+private function_recovery ::= !('binary' | 'bool' | 'byte' | 'double' |'i8' | 'i16' | 'i32' | 'i64' | 'list' | 'map' |
+                               'oneway' | 'set' | 'slist' | 'string' | 'void' | '}' | IDENTIFIER | list_separator)
+function_type       ::=  'void' | type
+function_throws     ::=  'throws' '(' fields_with_brace_recovery ')' {pin=1}
+
+type          ::=  base_type | container_type | custom_type
+
+base_type            ::=  simple_base_type type_annotations? {extends=type}
+private simple_base_type      ::=  'bool' | 'byte' | 'i8' | 'i16' | 'i32' | 'i64' | 'double' | 'string' | 'binary' | 'slist'
+container_type       ::=  (map_type | set_type | list_type) type_annotations? {extends=type}
+map_type            ::=  'map' cpp_type_attr? '<' type ',' type '>'
+{
+    pin=1
+    extends=container_type
+    methods=[
+        keyType="/type[0]"
+        valueType="/type[1]"
   ]
 }
 
-ConstValue      ::=  IntConstant | DoubleConstant | Literal | Identifier | ConstList | ConstMap
-IntConstant     ::=  ('+' | '-')? Integer
-DoubleConstant  ::=  ('+' | '-')? Number
-ConstList       ::=  '[' (ConstValue ListSeparator?)* ']'
-ConstMap        ::=  '{' (ConstValue ':' ConstValue ListSeparator?)* '}'
+set_type            ::=  'set' cpp_type_attr? '<' type '>' {pin=1 extends=container_type}
+list_type           ::=  'list' '<' type '>' cpp_type_attr? {pin=1 extends=container_type}
+cpp_type_attr       ::=  'cpp_type' LITERAL {pin=1}
 
-ListSeparator   ::=  ',' | ';'
+custom_type         ::= IDENTIFIER {
+  methods=[
+    getReferences
+  ]
+  extends=type
+}
 
-TypeAnnotations ::= '(' TypeAnnotationList ')'
-TypeAnnotationList ::= TypeAnnotation* {recoverWhile=braceRecovery}
-TypeAnnotation ::= Identifier ('=' Literal ListSeparator?)?
+const_value      ::=  int_constant | double_constant | LITERAL | IDENTIFIER | const_list | const_map
+int_constant     ::=  ('+' | '-')? INTEGER
+double_constant  ::=  ('+' | '-')? NUMBER
+const_list       ::=  '[' (const_value list_separator?)* ']'
+const_map        ::=  '{' (const_value ':' const_value list_separator?)* '}'
 
-private braceRecovery ::= !(')')
+list_separator   ::=  ',' | ';'
+
+type_annotations ::= '(' type_annotation_list ')'
+type_annotation_list ::= type_annotation* {recoverWhile=brace_recovery}
+type_annotation ::= IDENTIFIER ('=' LITERAL list_separator?)?
+
+private brace_recovery ::= !(')')
+private curly_brace_recovery ::= !('}')

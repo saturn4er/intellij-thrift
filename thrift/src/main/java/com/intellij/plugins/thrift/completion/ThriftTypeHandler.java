@@ -5,7 +5,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.thrift.ThriftLanguage;
-import com.intellij.plugins.thrift.lang.psi.ThriftGenericType;
+import com.intellij.plugins.thrift.lang.psi.ThriftContainerType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ public class ThriftTypeHandler extends TypedHandlerDelegate {
       int offset = editor.getCaretModel().getOffset();
       final char charAtOffset = editor.getDocument().getCharsSequence().charAt(offset);
       final PsiElement elementAtOffset = file.findElementAt(offset);
-      if (charAtOffset == '>' && elementAtOffset != null && elementAtOffset.getParent() instanceof ThriftGenericType) {
+      if (charAtOffset == '>' && elementAtOffset != null && elementAtOffset.getParent() instanceof ThriftContainerType) {
         editor.getCaretModel().moveToOffset(offset + 1);
         return Result.STOP;
       }
