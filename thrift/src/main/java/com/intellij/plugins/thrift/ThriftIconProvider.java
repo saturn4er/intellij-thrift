@@ -21,6 +21,9 @@ public class ThriftIconProvider extends IconProvider {
     if (element instanceof ThriftEnumDeclaration) {
       return ThriftIcons.ENUM;
     }
+    if (element instanceof ThriftSenumDeclaration) {
+      return ThriftIcons.ENUM;
+    }
     if (element instanceof ThriftExceptionDeclaration) {
       return ThriftIcons.EXCEPTION;
     }

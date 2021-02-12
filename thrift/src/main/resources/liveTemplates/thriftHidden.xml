@@ -1,0 +1,103 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<templateSet group="ThriftHiddenTemplate" hidden="true">
+    <!-- KEYWORDS -->
+    <template
+            description='TypeDef declaration' id='thrift_typedef' name='thrift_typedef' toReformat='true' toShortenFQNames='true'
+            value="typedef $TYPE$ $NAME$&#10;$END$">
+        <variable name='TYPE' alwaysStopAt="true"/>
+        <variable name='NAME' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Const declaration' id='thrift_const' name='thrift_const' toReformat='true' toShortenFQNames='true'
+            value="const $TYPE$ $NAME$ = $VALUE$&#10;$END$">
+        <variable name='TYPE' alwaysStopAt="true"/>
+        <variable name='NAME' alwaysStopAt="true"/>
+        <variable name='VALUE' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Struct declaration' id='thrift_struct' name='thrift_struct' toReformat='true' toShortenFQNames='true'
+              value="struct $NAME$ {&#10;    $END$&#10;}">
+        <variable name='NAME' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Exception declaration' id='thrift_exception' name='thrift_exception' toReformat='true' toShortenFQNames='true'
+            value="exception $NAME$ {&#10;    $END$&#10;}">
+        <variable name='NAME' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Union declaration' id='thrift_union' name='thrift_union' toReformat='true' toShortenFQNames='true'
+            value="union $NAME$ {&#10;    $END$&#10;}">
+        <variable name='NAME' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Senum declaration' id='thrift_senum' name='thrift_senum' toReformat='true' toShortenFQNames='true'
+            value="senum $NAME$ {&#10;    $END$&#10;}">
+        <variable name='NAME' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Enum declaration' id='thrift_enum' name='thrift_enum' toReformat='true' toShortenFQNames='true'
+            value="enum $NAME$ {&#10;    $END$&#10;}">
+        <variable name='NAME' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Service declaration' id='thrift_service' name='thrift_service' toReformat='true' toShortenFQNames='true'
+            value="service $NAME$ {&#10;    $END$&#10;}">
+        <variable name='NAME' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Namespace declaration' id='thrift_namespace' name='thrift_namespace' toReformat='true' toShortenFQNames='true'
+            value="namespace $SCOPE$ $VALUE$&#10;$END$">
+        <variable name='SCOPE' alwaysStopAt="true"/>
+        <variable name='VALUE' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='PHP Namespace declaration' id='thrift_php_namespace' name='thrift_php_namespace' toReformat='true' toShortenFQNames='true'
+            value='php_namespace "$VALUE$"&#10;$END$'>
+        <variable name='VALUE' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='XSD Namespace declaration' id='thrift_xsd_namespace' name='thrift_xsd_namespace' toReformat='true' toShortenFQNames='true'
+            value='xsd_namespace "$VALUE$"&#10;$END$'>
+        <variable name='VALUE' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Include statement' id='thrift_include' name='thrift_include' toReformat='true' toShortenFQNames='true'
+            value='include "$PATH$"&#10;$END$'>
+        <variable name='PATH' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='CPP Include statement' id='thrift_cpp_include' name='thrift_cpp_include' toReformat='true' toShortenFQNames='true'
+            value='cpp_include "$PATH$"&#10;$END$'>
+        <variable name='PATH' alwaysStopAt="true"/>
+    </template>
+
+    <!--FUNCTION-->
+    <template
+            description='Void function' id='thrift_void' name='thrift_void' toReformat='true' toShortenFQNames='true'
+            value='void $NAME$($END$)'>
+        <variable name='NAME' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Function throws' id='thrift_throws' name='thrift_throws' toReformat='true' toShortenFQNames='true'
+            value='throws(&#10;$END$&#10;)'>
+    </template>
+
+    <!--TYPES-->
+    <template
+            description='Map function' id='thrift_map' name='thrift_map' toReformat='true' toShortenFQNames='true'
+            value='map&#60;$FIRST_TYPE$, $SECOND_TYPE$&#62;$END$'>
+        <variable name='FIRST_TYPE' alwaysStopAt="true"/>
+        <variable name='SECOND_TYPE' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='List function' id='thrift_list' name='thrift_list' toReformat='true' toShortenFQNames='true'
+            value='list&#60;$TYPE$&#62;$END$'>
+        <variable name='TYPE' alwaysStopAt="true"/>
+    </template>
+    <template
+            description='Set function' id='thrift_set' name='thrift_set' toReformat='true' toShortenFQNames='true'
+            value='set&#60;$TYPE$&#62;$END$'>
+        <variable name='TYPE' alwaysStopAt="true"/>
+    </template>
+</templateSet>

@@ -1,10 +1,13 @@
 package com.intellij.plugins.thrift.lang.psi;
 
+import com.intellij.codeInsight.completion.InsertHandler;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.model.SymbolResolveResult;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.thrift.completion.ThriftKeywordCompletionProvider;
 import com.intellij.plugins.thrift.lang.ThriftElementFactory;
 import com.intellij.plugins.thrift.lang.lexer.ThriftTokenTypeSets;
 import com.intellij.plugins.thrift.util.ThriftPsiUtil;
@@ -17,6 +20,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.intellij.plugins.thrift.lang.lexer.ThriftTokenTypes.*;
+import static com.intellij.plugins.thrift.lang.lexer.ThriftTokenTypes.MAP;
 
 /**
  * Created by fkorotkov.
@@ -43,14 +49,13 @@ public class ThriftTypeReference extends PsiReferenceBase<ThriftCustomType> {
       final List<Object> result1 = new ArrayList<>();
       PsiFile psiFile = pair.getSecond();
       ThriftPsiUtil.processDeclarations(psiFile, declaration -> {
-        result1.add(declaration);
+        if (declaration.getIdentifier() != null) {
+          result1.add(declaration);
+        }
         return true;
       });
 
       if (isSimple()) {
-
-        result1.addAll(Arrays.stream(ThriftTokenTypeSets.BASE_TYPES.getTypes()).map(t -> t.getDebugName()).collect(Collectors.toList()));
-
         ThriftPsiUtil.processIncludes(getElement().getContainingFile(), include -> {
           String path = include.getPath();
           String fileName = PathUtil.getFileName(path);

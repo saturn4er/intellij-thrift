@@ -129,8 +129,12 @@
     <lang.parserDefinition language="thrift" implementationClass="com.intellij.plugins.thrift.lang.parser.ThriftParserDefinition"/>
     <itemPresentationProvider forClass="com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration"
                               implementationClass="com.intellij.plugins.thrift.lang.psi.presentation.ThriftTopLevelDeclarationPresentationProvider"/>
+    <itemPresentationProvider forClass="com.intellij.plugins.thrift.lang.psi.ThriftField"
+                              implementationClass="com.intellij.plugins.thrift.lang.psi.presentation.ThriftFieldPresentationProvider"/>
     <itemPresentationProvider forClass="com.intellij.plugins.thrift.lang.psi.ThriftSubDeclaration"
                               implementationClass="com.intellij.plugins.thrift.lang.psi.presentation.ThriftSubDeclarationPresentationProvider"/>
+
+
     <codeInsight.lineMarkerProvider language="thrift" implementationClass="com.intellij.plugins.thrift.editor.ThriftLineMarkerProvider"/>
     <iconProvider implementation="com.intellij.plugins.thrift.ThriftIconProvider"/>
     <lang.psiStructureViewFactory language="thrift" implementationClass="com.intellij.plugins.thrift.structure.ThriftStructureViewFactory"/>
@@ -145,6 +149,9 @@
     <!--<lang.formatter/>-->
 
     <typedHandler implementation="com.intellij.plugins.thrift.completion.ThriftTypeHandler"/>
+    <completion.contributor language="thrift"
+                            implementationClass="com.intellij.plugins.thrift.completion.ThriftCompletionContributor"/>
+
     <lang.braceMatcher language="thrift" implementationClass="com.intellij.plugins.thrift.ThriftBraceMatcher"/>
     <lang.commenter language="thrift" implementationClass="com.intellij.plugins.thrift.ThriftCommenter"/>
     <lang.implementationTextSelectioner language="thrift"
@@ -190,12 +197,14 @@
     <compileServer.plugin classpath="thrift-jps.jar;commons-io-2.4.jar"/>
     <codeInsight.lineMarkerProvider language="Scala" implementationClass="com.intellij.plugins.thrift.editor.GoToThriftDefinitionMarkerProvider"/>
     <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.intellij.plugins.thrift.editor.GoToThriftDefinitionMarkerProvider"/>
+
+    <defaultLiveTemplates file="/liveTemplates/thriftHidden.xml" hidden="true"/>
   </extensions>
 
   <actions>
     <action class="com.intellij.plugins.thrift.editor.GoToThriftDefinition"
             id="com.intellij.plugins.thrift.editor.GoToThriftDefinition"
-            text="Go to Thrift source">
+            text="Go to Thrift Source">
       <add-to-group group-id="RunContextPopupGroup" anchor="first"/>
     </action>
   </actions>

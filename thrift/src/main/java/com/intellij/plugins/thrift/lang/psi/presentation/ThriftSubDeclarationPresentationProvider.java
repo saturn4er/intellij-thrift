@@ -3,20 +3,28 @@ package com.intellij.plugins.thrift.lang.psi.presentation;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.ItemPresentationProvider;
 import com.intellij.openapi.util.Iconable;
+import com.intellij.plugins.thrift.lang.psi.ThriftField;
+import com.intellij.plugins.thrift.lang.psi.ThriftFunction;
 import com.intellij.plugins.thrift.lang.psi.ThriftSubDeclaration;
 import com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.util.PsiFormatUtil;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 public class ThriftSubDeclarationPresentationProvider implements ItemPresentationProvider<ThriftSubDeclaration> {
   @Override
-  public ItemPresentation getPresentation(final ThriftSubDeclaration item) {
+  public ItemPresentation getPresentation(final @NotNull ThriftSubDeclaration item) {
     return new ItemPresentation() {
       @Nullable
       @Override
       public String getPresentableText() {
+        if(item instanceof ThriftFunction){
+
+        }
         return item.getName();
       }
 

@@ -8,10 +8,12 @@ import com.intellij.plugins.thrift.lang.psi.impl.*;
 
 public interface ThriftTokenTypes {
 
+  IElementType ANNOTATED_TYPE = new ThriftElementType("ANNOTATED_TYPE");
   IElementType BASE_TYPE = new ThriftElementType("BASE_TYPE");
   IElementType CONST_DECLARATION = new ThriftElementType("CONST_DECLARATION");
   IElementType CONST_LIST = new ThriftElementType("CONST_LIST");
   IElementType CONST_MAP = new ThriftElementType("CONST_MAP");
+  IElementType CONST_MAP_ITEM = new ThriftElementType("CONST_MAP_ITEM");
   IElementType CONST_VALUE = new ThriftElementType("CONST_VALUE");
   IElementType CONTAINER_TYPE = new ThriftElementType("CONTAINER_TYPE");
   IElementType CPP_TYPE_ATTR = new ThriftElementType("CPP_TYPE_ATTR");
@@ -44,7 +46,7 @@ public interface ThriftTokenTypes {
   IElementType TYPE = new ThriftElementType("TYPE");
   IElementType TYPE_ANNOTATION = new ThriftElementType("TYPE_ANNOTATION");
   IElementType TYPE_ANNOTATIONS = new ThriftElementType("TYPE_ANNOTATIONS");
-  IElementType TYPE_ANNOTATION_LIST = new ThriftElementType("TYPE_ANNOTATION_LIST");
+  IElementType TYPE_ANNOTATION_RECOVERY = new ThriftElementType("TYPE_ANNOTATION_RECOVERY");
   IElementType TYPE_DECLARATION = new ThriftElementType("TYPE_DECLARATION");
   IElementType UNION_DECLARATION = new ThriftElementType("UNION_DECLARATION");
 
@@ -63,14 +65,16 @@ public interface ThriftTokenTypes {
   IElementType EQUALS = new ThriftElementType("=");
   IElementType EXCEPTION = new ThriftElementType("exception");
   IElementType EXTENDS = new ThriftElementType("extends");
+  IElementType FLOAT_NUMBER = new ThriftElementType("FLOAT_NUMBER");
   IElementType GT = new ThriftElementType(">");
+  IElementType HEX_NUMBER = new ThriftElementType("HEX_NUMBER");
   IElementType I16 = new ThriftElementType("i16");
   IElementType I32 = new ThriftElementType("i32");
   IElementType I64 = new ThriftElementType("i64");
   IElementType I8 = new ThriftElementType("i8");
   IElementType IDENTIFIER = new ThriftElementType("IDENTIFIER");
   IElementType INCLUDE = new ThriftElementType("include");
-  IElementType INTEGER = new ThriftElementType("INTEGER");
+  IElementType INT_NUMBER = new ThriftElementType("INT_NUMBER");
   IElementType LEFT_BRACE = new ThriftElementType("(");
   IElementType LEFT_BRACKET = new ThriftElementType("[");
   IElementType LEFT_CURLY_BRACE = new ThriftElementType("{");
@@ -81,7 +85,6 @@ public interface ThriftTokenTypes {
   IElementType MINUS = new ThriftElementType("-");
   IElementType MULTIPLY = new ThriftElementType("*");
   IElementType NAMESPACE = new ThriftElementType("namespace");
-  IElementType NUMBER = new ThriftElementType("NUMBER");
   IElementType ONEWAY = new ThriftElementType("oneway");
   IElementType OPTIONAL = new ThriftElementType("optional");
   IElementType PHP_NAMESPACE = new ThriftElementType("php_namespace");
@@ -110,7 +113,10 @@ public interface ThriftTokenTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-      if (type == BASE_TYPE) {
+      if (type == ANNOTATED_TYPE) {
+        return new ThriftAnnotatedTypeImpl(node);
+      }
+      else if (type == BASE_TYPE) {
         return new ThriftBaseTypeImpl(node);
       }
       else if (type == CONST_DECLARATION) {
@@ -122,11 +128,11 @@ public interface ThriftTokenTypes {
       else if (type == CONST_MAP) {
         return new ThriftConstMapImpl(node);
       }
+      else if (type == CONST_MAP_ITEM) {
+        return new ThriftConstMapItemImpl(node);
+      }
       else if (type == CONST_VALUE) {
         return new ThriftConstValueImpl(node);
-      }
-      else if (type == CONTAINER_TYPE) {
-        return new ThriftContainerTypeImpl(node);
       }
       else if (type == CPP_TYPE_ATTR) {
         return new ThriftCppTypeAttrImpl(node);
@@ -215,8 +221,8 @@ public interface ThriftTokenTypes {
       else if (type == TYPE_ANNOTATIONS) {
         return new ThriftTypeAnnotationsImpl(node);
       }
-      else if (type == TYPE_ANNOTATION_LIST) {
-        return new ThriftTypeAnnotationListImpl(node);
+      else if (type == TYPE_ANNOTATION_RECOVERY) {
+        return new ThriftTypeAnnotationRecoveryImpl(node);
       }
       else if (type == TYPE_DECLARATION) {
         return new ThriftTypeDeclarationImpl(node);

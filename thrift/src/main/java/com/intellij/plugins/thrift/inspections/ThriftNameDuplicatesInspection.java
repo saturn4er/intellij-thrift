@@ -105,6 +105,10 @@ public class ThriftNameDuplicatesInspection extends LocalInspectionTool {
     Set<String> methodNames = new HashSet<String>();
 
     for (ThriftFunction f : service.getFunctionList()) {
+      if (f.getDefinitionName() == null){
+        continue;
+      }
+
       String methodName = f.getDefinitionName().getName();
 
       if (!methodNames.add(methodName)) {

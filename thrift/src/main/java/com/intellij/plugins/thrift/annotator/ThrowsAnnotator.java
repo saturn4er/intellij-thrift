@@ -19,10 +19,10 @@ public class ThrowsAnnotator implements Annotator {
     }
 
     for (ThriftField field : ((ThriftFunctionThrows) element).getFieldList()) {
-      if(!(field.getType() instanceof ThriftCustomType)){
+      if(!(field.getAnnotatedType().getType() instanceof ThriftCustomType)){
         continue;
       }
-      ThriftCustomType fieldType = (ThriftCustomType) field.getType();
+      ThriftCustomType fieldType = (ThriftCustomType) field.getAnnotatedType();
 
       for (PsiReference reference : ThriftPsiUtil.getReferences(fieldType)) {
         if (!(reference instanceof ThriftTypeReference)) {

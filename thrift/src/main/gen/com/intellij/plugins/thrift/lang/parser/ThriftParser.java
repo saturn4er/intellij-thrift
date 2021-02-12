@@ -41,22 +41,42 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   };
 
   /* ********************************************************** */
-  // simple_base_type type_annotations?
-  public static boolean base_type(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "base_type")) return false;
+  // type type_annotations?
+  public static boolean annotated_type(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "annotated_type")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, BASE_TYPE, "<base type>");
-    r = simple_base_type(b, l + 1);
-    r = r && base_type_1(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, ANNOTATED_TYPE, "<annotated type>");
+    r = type(b, l + 1);
+    r = r && annotated_type_1(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   // type_annotations?
-  private static boolean base_type_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "base_type_1")) return false;
+  private static boolean annotated_type_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "annotated_type_1")) return false;
     type_annotations(b, l + 1);
     return true;
+  }
+
+  /* ********************************************************** */
+  // 'bool' | 'byte' | 'i8' | 'i16' | 'i32' | 'i64' | 'double' | 'string' | 'binary' | 'slist'
+  public static boolean base_type(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "base_type")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, BASE_TYPE, "<base type>");
+    r = consumeToken(b, BOOL);
+    if (!r) r = consumeToken(b, BYTE);
+    if (!r) r = consumeToken(b, I8);
+    if (!r) r = consumeToken(b, I16);
+    if (!r) r = consumeToken(b, I32);
+    if (!r) r = consumeToken(b, I64);
+    if (!r) r = consumeToken(b, DOUBLE);
+    if (!r) r = consumeToken(b, STRING);
+    if (!r) r = consumeToken(b, BINARY);
+    if (!r) r = consumeToken(b, SLIST);
+    exit_section_(b, l, m, r, false, null);
+    return r;
   }
 
   /* ********************************************************** */
@@ -71,7 +91,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'const' type definition_name '=' const_value list_separator?
+  // 'const' annotated_type definition_name '=' const_value list_separator?
   public static boolean const_declaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "const_declaration")) return false;
     if (!nextTokenIs(b, CONST)) return false;
@@ -79,7 +99,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _NONE_, CONST_DECLARATION, null);
     r = consumeToken(b, CONST);
     p = r; // pin = 1
-    r = r && report_error_(b, type(b, l + 1));
+    r = r && report_error_(b, annotated_type(b, l + 1));
     r = p && report_error_(b, definition_name(b, l + 1)) && r;
     r = p && report_error_(b, consumeToken(b, EQUALS)) && r;
     r = p && report_error_(b, const_value(b, l + 1)) && r;
@@ -139,7 +159,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '{' (const_value ':' const_value list_separator?)* '}'
+  // '{' const_map_item* '}'
   public static boolean const_map(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "const_map")) return false;
     if (!nextTokenIs(b, LEFT_CURLY_BRACE)) return false;
@@ -152,33 +172,34 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // (const_value ':' const_value list_separator?)*
+  // const_map_item*
   private static boolean const_map_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "const_map_1")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!const_map_1_0(b, l + 1)) break;
+      if (!const_map_item(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "const_map_1", c)) break;
     }
     return true;
   }
 
+  /* ********************************************************** */
   // const_value ':' const_value list_separator?
-  private static boolean const_map_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "const_map_1_0")) return false;
+  public static boolean const_map_item(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "const_map_item")) return false;
     boolean r;
-    Marker m = enter_section_(b);
+    Marker m = enter_section_(b, l, _NONE_, CONST_MAP_ITEM, "<const map item>");
     r = const_value(b, l + 1);
     r = r && consumeToken(b, COLON);
     r = r && const_value(b, l + 1);
-    r = r && const_map_1_0_3(b, l + 1);
-    exit_section_(b, m, null, r);
+    r = r && const_map_item_3(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   // list_separator?
-  private static boolean const_map_1_0_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "const_map_1_0_3")) return false;
+  private static boolean const_map_item_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "const_map_item_3")) return false;
     list_separator(b, l + 1);
     return true;
   }
@@ -200,32 +221,16 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // (map_type | set_type | list_type) type_annotations?
+  // map_type | set_type | list_type
   public static boolean container_type(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "container_type")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _COLLAPSE_, CONTAINER_TYPE, "<container type>");
-    r = container_type_0(b, l + 1);
-    r = r && container_type_1(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // map_type | set_type | list_type
-  private static boolean container_type_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "container_type_0")) return false;
-    boolean r;
     r = map_type(b, l + 1);
     if (!r) r = set_type(b, l + 1);
     if (!r) r = list_type(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
     return r;
-  }
-
-  // type_annotations?
-  private static boolean container_type_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "container_type_1")) return false;
-    type_annotations(b, l + 1);
-    return true;
   }
 
   /* ********************************************************** */
@@ -312,35 +317,19 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ('+' | '-')? NUMBER
+  // (FLOAT_NUMBER)
   public static boolean double_constant(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "double_constant")) return false;
+    if (!nextTokenIs(b, FLOAT_NUMBER)) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, DOUBLE_CONSTANT, "<double constant>");
-    r = double_constant_0(b, l + 1);
-    r = r && consumeToken(b, NUMBER);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // ('+' | '-')?
-  private static boolean double_constant_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "double_constant_0")) return false;
-    double_constant_0_0(b, l + 1);
-    return true;
-  }
-
-  // '+' | '-'
-  private static boolean double_constant_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "double_constant_0_0")) return false;
-    boolean r;
-    r = consumeToken(b, PLUS);
-    if (!r) r = consumeToken(b, MINUS);
+    Marker m = enter_section_(b);
+    r = consumeToken(b, FLOAT_NUMBER);
+    exit_section_(b, m, DOUBLE_CONSTANT, r);
     return r;
   }
 
   /* ********************************************************** */
-  // enum_field (list_separator? enum_field)*
+  // enum_field ( list_separator? enum_field )*
   static boolean enum_body(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "enum_body")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
@@ -352,7 +341,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // (list_separator? enum_field)*
+  // ( list_separator? enum_field )*
   private static boolean enum_body_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "enum_body_1")) return false;
     while (true) {
@@ -417,13 +406,14 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   // IDENTIFIER ('=' int_constant)? type_annotations?
   public static boolean enum_field(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "enum_field")) return false;
-    boolean r;
+    boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, ENUM_FIELD, "<enum field>");
     r = consumeToken(b, IDENTIFIER);
-    r = r && enum_field_1(b, l + 1);
-    r = r && enum_field_2(b, l + 1);
-    exit_section_(b, l, m, r, false, ThriftParser::enum_field_recovery);
-    return r;
+    p = r; // pin = 1
+    r = r && report_error_(b, enum_field_1(b, l + 1));
+    r = p && enum_field_2(b, l + 1) && r;
+    exit_section_(b, l, m, r, p, ThriftParser::enum_field_recovery);
+    return r || p;
   }
 
   // ('=' int_constant)?
@@ -452,7 +442,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !('}' | IDENTIFIER)
+  // !('}' | IDENTIFIER | ',' )
   static boolean enum_field_recovery(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "enum_field_recovery")) return false;
     boolean r;
@@ -462,12 +452,13 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // '}' | IDENTIFIER
+  // '}' | IDENTIFIER | ','
   private static boolean enum_field_recovery_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "enum_field_recovery_0")) return false;
     boolean r;
     r = consumeToken(b, RIGHT_CURLY_BRACE);
     if (!r) r = consumeToken(b, IDENTIFIER);
+    if (!r) r = consumeToken(b, COMMA);
     return r;
   }
 
@@ -497,14 +488,14 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // field_id? field_req? type definition_name ('=' const_value)? field_xsd_options? type_annotations? list_separator?
+  // field_id? field_req? annotated_type definition_name ('=' const_value)? field_xsd_options? type_annotations? list_separator?
   public static boolean field(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "field")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, FIELD, "<field>");
     r = field_0(b, l + 1);
     r = r && field_1(b, l + 1);
-    r = r && type(b, l + 1);
+    r = r && annotated_type(b, l + 1);
     p = r; // pin = 3
     r = r && report_error_(b, definition_name(b, l + 1));
     r = p && report_error_(b, field_4(b, l + 1)) && r;
@@ -572,6 +563,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   // int_constant ':'
   public static boolean field_id(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "field_id")) return false;
+    if (!nextTokenIs(b, "<field id>", HEX_NUMBER, INT_NUMBER)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, FIELD_ID, "<field id>");
     r = int_constant(b, l + 1);
@@ -582,7 +574,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // !(')' | '+' | '-' | 'binary' | 'bool' | 'byte' | 'double' | 'i8' | 'i16' | 'i32' | 'i64' | 'list' |
-  //                             'map' | 'optional' | 'required' | 'set' | 'slist' | 'string' | '}'| INTEGER | IDENTIFIER | NUMBER )
+  //                             'map' | 'optional' | 'required' | 'set' | 'slist' | 'string' | '}'| int_constant | IDENTIFIER  | ';' | ',' )
   static boolean field_recovery(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "field_recovery")) return false;
     boolean r;
@@ -593,7 +585,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   // ')' | '+' | '-' | 'binary' | 'bool' | 'byte' | 'double' | 'i8' | 'i16' | 'i32' | 'i64' | 'list' |
-  //                             'map' | 'optional' | 'required' | 'set' | 'slist' | 'string' | '}'| INTEGER | IDENTIFIER | NUMBER
+  //                             'map' | 'optional' | 'required' | 'set' | 'slist' | 'string' | '}'| int_constant | IDENTIFIER  | ';' | ','
   private static boolean field_recovery_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "field_recovery_0")) return false;
     boolean r;
@@ -616,9 +608,10 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, SLIST);
     if (!r) r = consumeToken(b, STRING);
     if (!r) r = consumeToken(b, RIGHT_CURLY_BRACE);
-    if (!r) r = consumeToken(b, INTEGER);
+    if (!r) r = int_constant(b, l + 1);
     if (!r) r = consumeToken(b, IDENTIFIER);
-    if (!r) r = consumeToken(b, NUMBER);
+    if (!r) r = consumeToken(b, SEMICOLON);
+    if (!r) r = consumeToken(b, COMMA);
     return r;
   }
 
@@ -732,9 +725,9 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _NONE_, FUNCTION, "<function>");
     r = function_0(b, l + 1);
     r = r && function_type(b, l + 1);
-    r = r && definition_name(b, l + 1);
-    p = r; // pin = 3
-    r = r && report_error_(b, consumeToken(b, LEFT_BRACE));
+    p = r; // pin = 2
+    r = r && report_error_(b, definition_name(b, l + 1));
+    r = p && report_error_(b, consumeToken(b, LEFT_BRACE)) && r;
     r = p && report_error_(b, fields_with_brace_recovery(b, l + 1)) && r;
     r = p && report_error_(b, consumeToken(b, RIGHT_BRACE)) && r;
     r = p && report_error_(b, function_6(b, l + 1)) && r;
@@ -818,13 +811,13 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'void' | type
+  // 'void' | annotated_type
   public static boolean function_type(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "function_type")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, FUNCTION_TYPE, "<function type>");
     r = consumeToken(b, VOID);
-    if (!r) r = type(b, l + 1);
+    if (!r) r = annotated_type(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -853,30 +846,15 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ('+' | '-')? INTEGER
+  // INT_NUMBER | HEX_NUMBER
   public static boolean int_constant(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "int_constant")) return false;
+    if (!nextTokenIs(b, "<int constant>", HEX_NUMBER, INT_NUMBER)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, INT_CONSTANT, "<int constant>");
-    r = int_constant_0(b, l + 1);
-    r = r && consumeToken(b, INTEGER);
+    r = consumeToken(b, INT_NUMBER);
+    if (!r) r = consumeToken(b, HEX_NUMBER);
     exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // ('+' | '-')?
-  private static boolean int_constant_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "int_constant_0")) return false;
-    int_constant_0_0(b, l + 1);
-    return true;
-  }
-
-  // '+' | '-'
-  private static boolean int_constant_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "int_constant_0_0")) return false;
-    boolean r;
-    r = consumeToken(b, PLUS);
-    if (!r) r = consumeToken(b, MINUS);
     return r;
   }
 
@@ -894,7 +872,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'list' '<' type '>' cpp_type_attr?
+  // 'list' '<' annotated_type '>' cpp_type_attr?
   public static boolean list_type(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "list_type")) return false;
     if (!nextTokenIs(b, LIST)) return false;
@@ -902,7 +880,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _NONE_, LIST_TYPE, null);
     r = consumeTokens(b, 1, LIST, LT);
     p = r; // pin = 1
-    r = r && report_error_(b, type(b, l + 1));
+    r = r && report_error_(b, annotated_type(b, l + 1));
     r = p && report_error_(b, consumeToken(b, GT)) && r;
     r = p && list_type_4(b, l + 1) && r;
     exit_section_(b, l, m, r, p, null);
@@ -917,7 +895,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'map' cpp_type_attr? '<' type ',' type '>'
+  // 'map' cpp_type_attr? '<' annotated_type ',' annotated_type '>'
   public static boolean map_type(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "map_type")) return false;
     if (!nextTokenIs(b, MAP)) return false;
@@ -927,9 +905,9 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     p = r; // pin = 1
     r = r && report_error_(b, map_type_1(b, l + 1));
     r = p && report_error_(b, consumeToken(b, LT)) && r;
-    r = p && report_error_(b, type(b, l + 1)) && r;
+    r = p && report_error_(b, annotated_type(b, l + 1)) && r;
     r = p && report_error_(b, consumeToken(b, COMMA)) && r;
-    r = p && report_error_(b, type(b, l + 1)) && r;
+    r = p && report_error_(b, annotated_type(b, l + 1)) && r;
     r = p && consumeToken(b, GT) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
@@ -1176,7 +1154,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'set' cpp_type_attr? '<' type '>'
+  // 'set' cpp_type_attr? '<' annotated_type '>'
   public static boolean set_type(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "set_type")) return false;
     if (!nextTokenIs(b, SET)) return false;
@@ -1186,7 +1164,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     p = r; // pin = 1
     r = r && report_error_(b, set_type_1(b, l + 1));
     r = p && report_error_(b, consumeToken(b, LT)) && r;
-    r = p && report_error_(b, type(b, l + 1)) && r;
+    r = p && report_error_(b, annotated_type(b, l + 1)) && r;
     r = p && consumeToken(b, GT) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
@@ -1197,24 +1175,6 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "set_type_1")) return false;
     cpp_type_attr(b, l + 1);
     return true;
-  }
-
-  /* ********************************************************** */
-  // 'bool' | 'byte' | 'i8' | 'i16' | 'i32' | 'i64' | 'double' | 'string' | 'binary' | 'slist'
-  static boolean simple_base_type(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "simple_base_type")) return false;
-    boolean r;
-    r = consumeToken(b, BOOL);
-    if (!r) r = consumeToken(b, BYTE);
-    if (!r) r = consumeToken(b, I8);
-    if (!r) r = consumeToken(b, I16);
-    if (!r) r = consumeToken(b, I32);
-    if (!r) r = consumeToken(b, I64);
-    if (!r) r = consumeToken(b, DOUBLE);
-    if (!r) r = consumeToken(b, STRING);
-    if (!r) r = consumeToken(b, BINARY);
-    if (!r) r = consumeToken(b, SLIST);
-    return r;
   }
 
   /* ********************************************************** */
@@ -1356,73 +1316,101 @@ public class ThriftParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // IDENTIFIER ('=' LITERAL list_separator?)?
+  // IDENTIFIER ('=' LITERAL)?
   public static boolean type_annotation(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_annotation")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, TYPE_ANNOTATION, "<type annotation>");
     r = consumeToken(b, IDENTIFIER);
+    p = r; // pin = 1
     r = r && type_annotation_1(b, l + 1);
-    exit_section_(b, m, TYPE_ANNOTATION, r);
-    return r;
+    exit_section_(b, l, m, r, p, ThriftParser::type_annotation_recovery);
+    return r || p;
   }
 
-  // ('=' LITERAL list_separator?)?
+  // ('=' LITERAL)?
   private static boolean type_annotation_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_annotation_1")) return false;
     type_annotation_1_0(b, l + 1);
     return true;
   }
 
-  // '=' LITERAL list_separator?
+  // '=' LITERAL
   private static boolean type_annotation_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_annotation_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokens(b, 0, EQUALS, LITERAL);
-    r = r && type_annotation_1_0_2(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // !(list_separator | ')')
+  public static boolean type_annotation_recovery(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "type_annotation_recovery")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_, TYPE_ANNOTATION_RECOVERY, "<type annotation recovery>");
+    r = !type_annotation_recovery_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // list_separator | ')'
+  private static boolean type_annotation_recovery_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "type_annotation_recovery_0")) return false;
+    boolean r;
+    r = list_separator(b, l + 1);
+    if (!r) r = consumeToken(b, RIGHT_BRACE);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // '(' (type_annotation list_separator?)* ')'
+  public static boolean type_annotations(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "type_annotations")) return false;
+    if (!nextTokenIs(b, LEFT_BRACE)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, TYPE_ANNOTATIONS, null);
+    r = consumeToken(b, LEFT_BRACE);
+    p = r; // pin = 1
+    r = r && report_error_(b, type_annotations_1(b, l + 1));
+    r = p && consumeToken(b, RIGHT_BRACE) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // (type_annotation list_separator?)*
+  private static boolean type_annotations_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "type_annotations_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!type_annotations_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "type_annotations_1", c)) break;
+    }
+    return true;
+  }
+
+  // type_annotation list_separator?
+  private static boolean type_annotations_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "type_annotations_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = type_annotation(b, l + 1);
+    r = r && type_annotations_1_0_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // list_separator?
-  private static boolean type_annotation_1_0_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "type_annotation_1_0_2")) return false;
+  private static boolean type_annotations_1_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "type_annotations_1_0_1")) return false;
     list_separator(b, l + 1);
     return true;
   }
 
   /* ********************************************************** */
-  // type_annotation*
-  public static boolean type_annotation_list(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "type_annotation_list")) return false;
-    Marker m = enter_section_(b, l, _NONE_, TYPE_ANNOTATION_LIST, "<type annotation list>");
-    while (true) {
-      int c = current_position_(b);
-      if (!type_annotation(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "type_annotation_list", c)) break;
-    }
-    exit_section_(b, l, m, true, false, ThriftParser::brace_recovery);
-    return true;
-  }
-
-  /* ********************************************************** */
-  // '(' type_annotation_list ')'
-  public static boolean type_annotations(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "type_annotations")) return false;
-    if (!nextTokenIs(b, LEFT_BRACE)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, LEFT_BRACE);
-    r = r && type_annotation_list(b, l + 1);
-    r = r && consumeToken(b, RIGHT_BRACE);
-    exit_section_(b, m, TYPE_ANNOTATIONS, r);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // 'typedef' type definition_name type_annotations?
+  // 'typedef' annotated_type definition_name type_annotations?
   public static boolean type_declaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_declaration")) return false;
     if (!nextTokenIs(b, TYPEDEF)) return false;
@@ -1430,7 +1418,7 @@ public class ThriftParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _NONE_, TYPE_DECLARATION, null);
     r = consumeToken(b, TYPEDEF);
     p = r; // pin = 1
-    r = r && report_error_(b, type(b, l + 1));
+    r = r && report_error_(b, annotated_type(b, l + 1));
     r = p && report_error_(b, definition_name(b, l + 1)) && r;
     r = p && type_declaration_3(b, l + 1) && r;
     exit_section_(b, l, m, r, p, null);

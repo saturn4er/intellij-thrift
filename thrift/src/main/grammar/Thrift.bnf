@@ -17,8 +17,13 @@
 
     tokens=[
         space               = 'regexp:\s+'
-        COMMENT             = 'regexp:#[^\r\n]*'
-        BLOCK_COMMENT       = 'regexp:/\* .* \*/'
+        COMMENT             = 'regexp://.*'
+
+
+        BLOCK_COMMENT       = "regexp:/\* !([^]* \*/[^]*) (\*/)?"
+        FLOAT_NUMBER        = 'regexp:[+-]?\d+(\.\d*)(e[+-]?\d+)?'
+        INT_NUMBER          = 'regexp:[+-]?\d+'
+        HEX_NUMBER         = 'regexp:[+-]?0x[0-9a-fA-F]+'
 
         LEFT_CURLY_BRACE    = '{'
         RIGHT_CURLY_BRACE   = '}'
@@ -31,7 +36,7 @@
         Colon               = ':'
         LT                  = '<'
         GT                  = '>'
-        Comma               = ','
+        COMMA               = ','
         Plus                = '+'
         Minus               = '-'
         MULTIPLY            = '*'
@@ -83,11 +88,9 @@
         XSD_NILLABLE        = 'xsd_nillable'
         XSD_ATTRS           = 'xsd_attrs'
 
-// regexps
+// other
         LITERAL             = "regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
         IDENTIFIER          = 'regexp:[\p{Alpha}_][\p{Alnum}._-]*'
-        INTEGER             = 'regexp:\d+'
-        NUMBER              = 'regexp:\d+(\.\d*)?'
     ];
 
     pin(".*_declaration") = 1
@@ -144,13 +147,13 @@ private declaration ::=  const_declaration
     | exception_declaration
     | service_declaration
 
-const_declaration   ::=  'const' type definition_name '=' const_value list_separator?
-type_declaration    ::=  'typedef' type definition_name type_annotations?
+const_declaration   ::=  'const' annotated_type definition_name '=' const_value list_separator?
+type_declaration    ::=  'typedef' annotated_type definition_name type_annotations?
 
 enum_declaration    ::=  'enum' definition_name '{' enum_body? '}' type_annotations?
-private enum_body   ::= enum_field (list_separator? enum_field)*
-enum_field ::= IDENTIFIER ('=' int_constant)? type_annotations? {recoverWhile=enum_field_recovery}
-private enum_field_recovery ::= !('}' | IDENTIFIER)
+private enum_body   ::= enum_field ( list_separator? enum_field )*
+enum_field ::= IDENTIFIER ('=' int_constant)? type_annotations? {pin=1 recoverWhile=enum_field_recovery}
+private enum_field_recovery ::= !('}' | IDENTIFIER | ',' )
 
 senum_declaration           ::=  'senum' definition_name '{' senum_body? '}' type_annotations?
 private senum_body ::= senum_field (list_separator? senum_field)*  {
@@ -177,38 +180,38 @@ private service_body ::= (function list_separator?)*
 private fields ::= field*
 private fields_with_brace_recovery ::= fields {recoverWhile=brace_recovery}
 private fields_with_curly_brace_recovery ::= fields {recoverWhile=curly_brace_recovery}
-field           ::=  field_id? field_req? type definition_name ('=' const_value)? field_xsd_options? type_annotations? list_separator?
+field           ::= field_id? field_req? annotated_type definition_name ('=' const_value)? field_xsd_options? type_annotations? list_separator?
 {
-  pin=3 recoverWhile=field_recovery
+  pin=3
+  recoverWhile=field_recovery
   mixin="com.intellij.plugins.thrift.lang.psi.impl.AbstractThriftDeclaration"
   implements="com.intellij.plugins.thrift.lang.psi.ThriftSubDeclaration"
-  methods=[getType]
 }
 field_id         ::=  int_constant ':'
 field_req        ::=  'required' | 'optional'
 private field_recovery ::= !(')' | '+' | '-' | 'binary' | 'bool' | 'byte' | 'double' | 'i8' | 'i16' | 'i32' | 'i64' | 'list' |
-                            'map' | 'optional' | 'required' | 'set' | 'slist' | 'string' | '}'| INTEGER | IDENTIFIER | NUMBER )
+                            'map' | 'optional' | 'required' | 'set' | 'slist' | 'string' | '}'| int_constant | IDENTIFIER  | ';' | ',' )
 
 private field_xsd_options ::=  'xsd_optional'? 'xsd_nillable'? field_xdf_attrs?
 field_xdf_attrs        ::=  'xsd_attrs' '{' fields '}' {pin=1}
 
 function        ::=  'oneway'? function_type definition_name '(' fields_with_brace_recovery ')' function_throws? type_annotations?
 {
-  pin=3 recoverWhile=function_recovery
+  pin=2 recoverWhile=function_recovery
   mixin="com.intellij.plugins.thrift.lang.psi.impl.AbstractThriftDeclaration"
   implements="com.intellij.plugins.thrift.lang.psi.ThriftSubDeclaration"
 }
 private function_recovery ::= !('binary' | 'bool' | 'byte' | 'double' |'i8' | 'i16' | 'i32' | 'i64' | 'list' | 'map' |
                                'oneway' | 'set' | 'slist' | 'string' | 'void' | '}' | IDENTIFIER | list_separator)
-function_type       ::=  'void' | type
+function_type       ::=  'void' | annotated_type
 function_throws     ::=  'throws' '(' fields_with_brace_recovery ')' {pin=1}
 
-type          ::=  base_type | container_type | custom_type
+annotated_type ::= type type_annotations?
+type           ::= base_type | container_type | custom_type
 
-base_type            ::=  simple_base_type type_annotations? {extends=type}
-private simple_base_type      ::=  'bool' | 'byte' | 'i8' | 'i16' | 'i32' | 'i64' | 'double' | 'string' | 'binary' | 'slist'
-container_type       ::=  (map_type | set_type | list_type) type_annotations? {extends=type}
-map_type            ::=  'map' cpp_type_attr? '<' type ',' type '>'
+base_type       ::=  ('bool' | 'byte' | 'i8' | 'i16' | 'i32' | 'i64' | 'double' | 'string' | 'binary' | 'slist')  {extends=type}
+container_type  ::=  (map_type | set_type | list_type)  {extends=type}
+map_type        ::=  'map' cpp_type_attr? '<' annotated_type ',' annotated_type '>'
 {
     pin=1
     extends=container_type
@@ -218,8 +221,8 @@ map_type            ::=  'map' cpp_type_attr? '<' type ',' type '>'
   ]
 }
 
-set_type            ::=  'set' cpp_type_attr? '<' type '>' {pin=1 extends=container_type}
-list_type           ::=  'list' '<' type '>' cpp_type_attr? {pin=1 extends=container_type}
+set_type            ::=  'set' cpp_type_attr? '<' annotated_type '>' {pin=1 extends=container_type}
+list_type           ::=  'list' '<' annotated_type '>' cpp_type_attr? {pin=1 extends=container_type}
 cpp_type_attr       ::=  'cpp_type' LITERAL {pin=1}
 
 custom_type         ::= IDENTIFIER {
@@ -230,16 +233,17 @@ custom_type         ::= IDENTIFIER {
 }
 
 const_value      ::=  int_constant | double_constant | LITERAL | IDENTIFIER | const_list | const_map
-int_constant     ::=  ('+' | '-')? INTEGER
-double_constant  ::=  ('+' | '-')? NUMBER
+int_constant     ::=  (INT_NUMBER | HEX_NUMBER)
+double_constant  ::=  (FLOAT_NUMBER)
 const_list       ::=  '[' (const_value list_separator?)* ']'
-const_map        ::=  '{' (const_value ':' const_value list_separator?)* '}'
+const_map        ::=  '{' const_map_item* '}'
+const_map_item   ::=  const_value ':' const_value list_separator?
 
 list_separator   ::=  ',' | ';'
 
-type_annotations ::= '(' type_annotation_list ')'
-type_annotation_list ::= type_annotation* {recoverWhile=brace_recovery}
-type_annotation ::= IDENTIFIER ('=' LITERAL list_separator?)?
+type_annotations ::= '(' (type_annotation list_separator?)* ')' {pin=1}
+type_annotation ::= IDENTIFIER ('=' LITERAL)? {pin=1 recoverWhile=type_annotation_recovery}
+type_annotation_recovery ::= !(list_separator | ')')
 
 private brace_recovery ::= !(')')
 private curly_brace_recovery ::= !('}')

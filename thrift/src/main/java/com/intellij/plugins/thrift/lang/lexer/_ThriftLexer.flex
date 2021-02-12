@@ -26,18 +26,22 @@ EOL=\R
 WHITE_SPACE=\s+
 
 SPACE=[ \t\n\x0B\f\r]+
-COMMENT=#[^\r\n]*
-BLOCK_COMMENT="/*" .* "*/"
+COMMENT="//".*
+BLOCK_COMMENT="/"\* !([^]* \*"/"[^]*) (\*"/")?
+INT_NUMBER=[+-]?[0-9]+
+FLOAT_NUMBER=[+-]?[0-9]+(\.[0-9]*)?(e[+-]?[0-9]+)?
+HEX_NUMBER=[+-]?0x[0-9a-fA-F]+
 LITERAL=('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")
 IDENTIFIER=[\p{Alpha}_][\p{Alnum}._-]*
-INTEGER=[0-9]+
-NUMBER=[0-9]+(\.[0-9]*)?
 
 %%
 <YYINITIAL> {
   {WHITE_SPACE}        { return WHITE_SPACE; }
   {COMMENT}            { return COMMENT; }
   {BLOCK_COMMENT}      { return BLOCK_COMMENT; }
+  {INT_NUMBER}         { return INT_NUMBER; }
+  {FLOAT_NUMBER}       { return FLOAT_NUMBER; }
+  {HEX_NUMBER}         { return HEX_NUMBER; }
 
   "{"                  { return LEFT_CURLY_BRACE; }
   "}"                  { return RIGHT_CURLY_BRACE; }
@@ -95,10 +99,7 @@ NUMBER=[0-9]+(\.[0-9]*)?
   {SPACE}              { return SPACE; }
   {LITERAL}            { return LITERAL; }
   {IDENTIFIER}         { return IDENTIFIER; }
-  {INTEGER}            { return INTEGER; }
-  {NUMBER}             { return NUMBER; }
 
 }
-
 
 [^] { return BAD_CHARACTER; }

@@ -17,6 +17,8 @@ import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferen
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiFormatUtil;
+import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
@@ -39,7 +41,7 @@ public class ThriftPsiUtil {
     }
     final PsiFileSystemItem target = getReferenceSet(include).resolve();
     if (target instanceof PsiFile) {
-      return (PsiFile)target;
+      return (PsiFile) target;
     }
     // check current dir
     PsiFile psiFile = include.getContainingFile();
@@ -55,17 +57,17 @@ public class ThriftPsiUtil {
 
 
     final VirtualFile includedVirtualFile = ContainerUtil.find(
-      FilenameIndex.getVirtualFilesByName(
-        include.getProject(),
-        PathUtil.getFileName(includePath),
-        GlobalSearchScope.allScope(include.getProject())
-      ),
-      new Condition<VirtualFile>() {
-        @Override
-        public boolean value(VirtualFile file) {
-          return file.getPath().endsWith(includePath);
-        }
-      }
+            FilenameIndex.getVirtualFilesByName(
+                    include.getProject(),
+                    PathUtil.getFileName(includePath),
+                    GlobalSearchScope.allScope(include.getProject())
+            ),
+            new Condition<VirtualFile>() {
+              @Override
+              public boolean value(VirtualFile file) {
+                return file.getPath().endsWith(includePath);
+              }
+            }
     );
 
     return includedVirtualFile != null ? include.getManager().findFile(includedVirtualFile) : null;
@@ -81,7 +83,7 @@ public class ThriftPsiUtil {
     final PsiElement element = include.getLastChild();
     final String path = getPath(include);
     return new FileReferenceSet(
-      path, include, element.getStartOffsetInParent() + 1, null, true, true, new FileType[]{ThriftFileType.INSTANCE}
+            path, include, element.getStartOffsetInParent() + 1, null, true, true, new FileType[]{ThriftFileType.INSTANCE}
     );
   }
 
@@ -97,11 +99,10 @@ public class ThriftPsiUtil {
     int index = text.lastIndexOf(".");
     if (index == -1) {
       return new PsiReference[]{new ThriftTypeReference(type, 0)};
-    }
-    else {
+    } else {
       return new PsiReference[]{
-        new ThriftPrefixReference(type, index),
-        new ThriftTypeReference(type, index + 1)
+              new ThriftPrefixReference(type, index),
+              new ThriftTypeReference(type, index + 1)
       };
     }
   }
@@ -151,7 +152,7 @@ public class ThriftPsiUtil {
       return;
     }
     for (PsiElement child : psiFile.getChildren()) {
-      if (clazz.isInstance(child) && !processor.process((T)child)) {
+      if (clazz.isInstance(child) && !processor.process((T) child)) {
         break;
       }
     }
@@ -175,7 +176,7 @@ public class ThriftPsiUtil {
     for (ChooseByNameContributor contributor : ChooseByNameRegistry.getInstance().getClassModelContributors()) {
       if (!(contributor instanceof ThriftClassContributor)) {
         for (NavigationItem navigationItem : contributor.getItemsByName(name, name, definitionName.getProject(), false)) {
-          if (navigationItem instanceof NavigatablePsiElement && !processor.process((NavigatablePsiElement)navigationItem)) {
+          if (navigationItem instanceof NavigatablePsiElement && !processor.process((NavigatablePsiElement) navigationItem)) {
             return;
           }
         }
@@ -187,7 +188,7 @@ public class ThriftPsiUtil {
   public static PsiElement setName(@NotNull ThriftDefinitionName definitionName, String name) {
     PsiElement child = definitionName.getFirstChild();
     if (child instanceof LeafPsiElement) {
-      ((LeafPsiElement)child).replaceWithText(name);
+      ((LeafPsiElement) child).replaceWithText(name);
     }
     return definitionName;
   }

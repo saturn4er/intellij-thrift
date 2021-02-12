@@ -45,7 +45,7 @@ public interface ThriftTokenTypeSets {
   );
 
   TokenSet BASE_TYPES = TokenSet.create(
-          I8, I16, I32, I64, DOUBLE, STRING, BINARY, SLIST
+          I8, I16, I32, I64, DOUBLE, STRING, BINARY, SLIST, LIST, MAP, BOOL, BYTE, SET
   );
 
   TokenSet KEYWORDS = TokenSet.create(

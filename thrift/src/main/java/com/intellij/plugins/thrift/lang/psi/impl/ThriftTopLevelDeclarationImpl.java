@@ -2,13 +2,13 @@ package com.intellij.plugins.thrift.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.thrift.lang.psi.ThriftDeclaration;
-import com.intellij.plugins.thrift.lang.psi.ThriftDeclarationBody;
 import com.intellij.plugins.thrift.lang.psi.ThriftTopLevelDeclaration;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
+
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ThriftTopLevelDeclarationImpl extends AbstractThriftDeclaration implements ThriftTopLevelDeclaration {
   public ThriftTopLevelDeclarationImpl(@NotNull ASTNode node) {
@@ -17,10 +17,11 @@ public class ThriftTopLevelDeclarationImpl extends AbstractThriftDeclaration imp
 
   @Override
   public List<ThriftDeclaration> findSubDeclarations() {
-    ThriftDeclarationBody body = PsiTreeUtil.getChildOfType(this, ThriftDeclarationBody.class);
-    if (body == null) {
-      return Collections.emptyList();
-    }
-    return PsiTreeUtil.getChildrenOfTypeAsList(body, ThriftDeclaration.class);
+    return Arrays
+            .stream(getChildren())
+            .filter(c->c instanceof ThriftDeclaration)
+            .map(c->(ThriftDeclaration) c)
+            .collect(Collectors.toList());
+
   }
 }

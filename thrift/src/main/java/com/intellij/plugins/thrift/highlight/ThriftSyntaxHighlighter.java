@@ -28,8 +28,10 @@ public class ThriftSyntaxHighlighter extends SyntaxHighlighterBase {
   static {
     fillMap(ATTRIBUTES, OPERATORS, ThriftSyntaxHighlighterColors.OPERATION_SIGN);
 
-    ATTRIBUTES.put(NUMBER, ThriftSyntaxHighlighterColors.NUMBER);
-    ATTRIBUTES.put(INTEGER, ThriftSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(INT_NUMBER, ThriftSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(FLOAT_NUMBER, ThriftSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(HEX_NUMBER, ThriftSyntaxHighlighterColors.NUMBER);
+
 
     ATTRIBUTES.put(LITERAL, ThriftSyntaxHighlighterColors.STRING);
 

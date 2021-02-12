@@ -19,7 +19,10 @@ public class ThriftTypeHandler extends TypedHandlerDelegate {
     if (!isThriftContext(file)) {
       return super.charTyped(c, project, editor, file);
     }
-    if (c == '>') {
+
+    if(c =='\t'){
+      System.out.println(1);
+    } else if (c == '>') {
       int offset = editor.getCaretModel().getOffset();
       final char charAtOffset = editor.getDocument().getCharsSequence().charAt(offset);
       final PsiElement elementAtOffset = file.findElementAt(offset);
@@ -42,6 +45,7 @@ public class ThriftTypeHandler extends TypedHandlerDelegate {
       editor.getCaretModel().moveToOffset(offset);
       return Result.STOP;
     }
+
     return super.charTyped(c, project, editor, file);
   }
 
