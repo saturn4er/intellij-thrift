@@ -15,3 +15,8 @@ How to run locally with new changes
 ```bahs
 ./gradlew :thrift:runIde
 ```
+
+#TODO:
+Const value as a type
+Check type definition before throws
+Check for const values types
